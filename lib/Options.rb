@@ -1,12 +1,9 @@
 # Options
 
-# 20090321, 22
-# 0.5.0
+# 20090927
+# 0.6.0
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
-
-# Changes since: 0.4: 
-# 1. + OptionParser#soft_parse.  This was needed for #attribute in Attributes to work correctly.  Perhaps it doesn't need to strictly be a part of Options, but it'll do in here for now.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
@@ -20,25 +17,35 @@
 
 # Dependencies: 
 # 1. Standard Ruby Library
-# 2. Array#last!
+
+# Changes since: 0.5: 
+# 1. - require 'Array/lastX' (Using Array#pop instead.)
+# 2. Handles 'required' options by use of 'exclamation methods', even though OptionParser doesn't really do anything with that information.  Should throw an error IMO.  
+#   a. + String#required_arg?
+#   b. ~ String#short_arg?
+#   c. ~ String#long_arg?
+#   d. ~ Options#on_args
+# 3. ~ Options#method_missing (Fixes a minor error with which methods to 'subtract'.)
 
 require 'ostruct'
 require 'optparse'
-require 'Array/lastX'
-require 'pp'
 
 class String
   
   def short_arg?
-    self =~ /^.$/ || self =~ /^.\?$/
+    self =~ /^.$/ || self =~ /^.\?$/ || self =~ /^.\!$/
   end
   
   def long_arg?
-    self =~ /^..+$/ || self =~ /^..+\?$/
+    (self =~ /^..+$/ && !short_arg?) || self =~ /^..+\?$/ || self =~ /^..+!$/
   end
   
   def boolean_arg?
     self =~ /\?$/
+  end
+  
+  def required_arg?
+    self =~ /!$/
   end
   
 end
@@ -81,7 +88,7 @@ class Options
   private
   
   def method_missing(method_name, *args, &block)
-    if (@op.methods - Object.instance_methods).include?(method_name.to_s)
+    if (@op.methods - Options.instance_methods).include?(method_name.to_s)
       @op.send(method_name.to_s, *args, &block)
     else
       @options.send(method_name.to_s, *args, &block)
@@ -91,31 +98,48 @@ class Options
   def on_args(*attrs)
     on_args = []
     boolean = true
+    required = true
     attrs.collect{|e| e.to_s}.each do |attr|
       boolean = false if !attr.boolean_arg?
-      on_args << "-#{attr.long_arg? ? '-' : ''}#{attr.to_s.gsub('?','')}"
+      required = false if !attr.required_arg?
+      on_args << "-#{attr.long_arg? ? '-' : ''}#{attr.to_s.gsub('?','').gsub('!','')}"
     end
-    on_args << (on_args.last! + ' <>') if !boolean
-    on_args
+    if required
+      on_args << (on_args.pop + ' REQUIRED')
+    elsif boolean
+      on_args << (on_args.pop)
+    else
+      on_args << (on_args.pop + ' [OPTIONAL]')
+    end
   end
   
 end
 
 if __FILE__ == $0
+  require 'pp'
   
   options = Options.new
   
   pp options.application
-  pp options.hostname
+  pp options.hostname!
+  pp options.secure?
   
-  options.set(:h, :host, :hostname)
+  options.set(:h!, :host!, :hostname!)
   options.soft_parse
   pp options.application
-  pp options.hostname
+  pp options.hostname!
+  pp options.secure?
   
   options.set(:a, :app, :application)
   options.soft_parse
   pp options.application
-  pp options.hostname
+  pp options.hostname!
+  pp options.secure?
+  
+  options.set(:s?, :sec?, :secure?)
+  options.soft_parse
+  pp options.application
+  pp options.hostname!
+  pp options.secure?
   
 end
