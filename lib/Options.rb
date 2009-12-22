@@ -1,7 +1,7 @@
 # Options
 
 # 20090207
-# 0.4.4
+# 0.4.5
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -15,6 +15,8 @@
 # 4. Refactored #on_args a tiny bit.  
 # 3/4
 # 5. - __FILE__ == $0 stuff.  
+# 4/5
+# 6. Refactored #on_args some more, and while it is shorter again, I remain doubtful that it is clearer as to what is happening.  I'm still suspicious that the longer one was clearer?...  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
@@ -47,7 +49,7 @@ class String
     self =~ /\?$/
   end
   
-end # class String
+end
 
 class Options
   
@@ -83,16 +85,24 @@ class Options
     boolean = true
     attrs.collect{|e| e.to_s}.each do |attr|
       boolean = false if !attr.boolean_arg?
-      if attr.short_arg?
-        on_args << "-#{attr.to_s.gsub('?','')}"
-      else
-        on_args << "--#{attr.to_s.gsub('?','')}"
-      end # if
-    end # attrs.collect...each...
-    if !boolean
-      on_args << (on_args.last! + ' <>')
+      on_args << "-#{attr.long_arg? ? '-' : ''}#{attr.to_s.gsub('?','')}"
     end
+    on_args << (on_args.last! + ' <>') if !boolean
     on_args
   end
   
+end
+
+if __FILE__ == $0
+  options = Options.new do |opts|
+    opts.set(:r?, :form_required?, :required?)
+    opts.set(:f, :form)
+  end
+  
+  puts options.r?
+  puts options.form_required?
+  puts options.required?
+  
+  puts options.f
+  puts options.form
 end
