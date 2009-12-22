@@ -1,7 +1,7 @@
 # Options
 
-# 20080826
-# 0.?.0
+# 20090204, 05
+# 0.2.1
 
 # Description: 
 
@@ -26,20 +26,26 @@
 # options.form_name
 # options.form_number
 
+# Changes: 
+# 1. 
+
 require 'optparse'
 require 'ostruct'
+require 'pp'
 
 class Options < OpenStruct
   
   def initialize
     @op = OptionParser.new
-    yield self if block_given?
-    parse if block_given?
+    if block_given?
+      yield self
+      parse!
+    end
     super
   end
   
-  def set(attr, *opts, &block)
-    @op.on(opts, block) do |opt|
+  def set(attr, *opts)
+    @op.on(*opts) do |opt|
       self.send(attr.to_s + '=', opt)
     end
   end
