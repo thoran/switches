@@ -1,7 +1,7 @@
 # Options
 
 # 20090207
-# 0.4.3
+# 0.4.4
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -13,6 +13,8 @@
 # 3. Removed the OptionParser instance method specific methods on Options with a 'smarter' #method_missing.  I'm not sure that this is wise, since in a way I've lost some control over the interface and polluted the 'namespace' for potential switch names.  I'll reconsider this one...  
 # 2/3
 # 4. Refactored #on_args a tiny bit.  
+# 3/4
+# 5. - __FILE__ == $0 stuff.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
@@ -93,18 +95,4 @@ class Options
     on_args
   end
   
-end
-
-if __FILE__ == $0
-  options = Options.new do |opts|
-    opts.set(:r?, :form_required?, :required?)
-    opts.set(:f, :form)
-  end
-  
-  puts options.r?
-  puts options.form_required?
-  puts options.required?
-  
-  puts options.f
-  puts options.form
 end
