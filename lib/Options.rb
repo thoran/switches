@@ -1,7 +1,7 @@
 # Options
 
-# 20090207
-# 0.4.5
+# 20090213
+# 0.4.6
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -17,6 +17,10 @@
 # 5. - __FILE__ == $0 stuff.  
 # 4/5
 # 6. Refactored #on_args some more, and while it is shorter again, I remain doubtful that it is clearer as to what is happening.  I'm still suspicious that the longer one was clearer?...  
+# 5/6
+# 7. + Note #2.  
+# 8. A slight amendation to Dependency #2.  
+# 9. - self-run stuff.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
@@ -26,10 +30,11 @@
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
+# 2. An additional limitation is that the Options class cannot have option-methods which are unique to the OptionParser class as any OptionParser methods called are forwarded to the OptionParser instance in the Options class.  
 
 # Dependencies: 
 # 1. Standard Ruby Library
-# 2. Array#last
+# 2. Array#last!
 
 require 'ostruct'
 require 'optparse'
@@ -91,18 +96,4 @@ class Options
     on_args
   end
   
-end
-
-if __FILE__ == $0
-  options = Options.new do |opts|
-    opts.set(:r?, :form_required?, :required?)
-    opts.set(:f, :form)
-  end
-  
-  puts options.r?
-  puts options.form_required?
-  puts options.required?
-  
-  puts options.f
-  puts options.form
 end
