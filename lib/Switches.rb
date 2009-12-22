@@ -1,7 +1,7 @@
 # Switches
 
 # 20091222
-# 0.9.3
+# 0.9.4
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -52,18 +52,28 @@
 # 24. ~ self-run section to do a simple test of casting.  
 # 2/3
 # 25. /Options.rb/Switches.rb/.  
+# 3/4
+# 26. + CastingInterfaceMethods#integer(!).  
+# 27. + CastingInterfaceMethods#float(!).  
+# 28. + CastingInterfaceMethods#array(!).  
+# 29. + CastingInterfaceMethods#regex(p)(!).  
+# 30. + CastingInterfaceMethods#boolean(!).  
+# 31. ~ Switches#initialize + include_casting_interface_methods.  
+# 32. /String#short_arg?/String#short_switch/.  
+# 33. /String#long_arg?/String#long_switch/.  
+# 34. ~ Switches#on_args - boolean_switch.  
 
 require 'ostruct'
 require 'optparse'
 
 class String
   
-  def short_arg?
+  def short_switch?
     self =~ /^.$/ || self =~ /^.\?$/ || self =~ /^.\!$/
   end
   
-  def long_arg?
-    (self =~ /^..+$/ && !short_arg?) || self =~ /^..+\?$/ || self =~ /^..+!$/
+  def long_switch?
+    (self =~ /^..+$/ && !short_switch?) || self =~ /^..+\?$/ || self =~ /^..+!$/
   end
   
   def boolean_switch?
@@ -96,11 +106,64 @@ class OptionParser
   
 end
 
+module CastingInterfaceMethods
+  
+  # It doesn't make sense to cast a non-compulsory switch argument, but this is only so as to avoid errors if that behaviour is desired.  
+  def integer(*attrs, &block)
+    attrs << {:cast => Integer}
+    set(*attrs, &block)
+  end
+  
+  def integer!(*attrs, &block)
+    attrs << {:cast => Integer}
+    set!(*attrs, &block)
+  end
+  
+  def float(*attrs, &block)
+    attrs << {:cast => Float}
+    set(*attrs, &block)
+  end
+  
+  def float!(*attrs, &block)
+    attrs << {:cast => Float}
+    set!(*attrs, &block)
+  end
+  
+  def array(*attrs, &block)
+    attrs << {:cast => Array}
+    set(*attrs, &block)
+  end
+  
+  def array!(*attrs, &block)
+    attrs << {:cast => Array}
+    set!(*attrs, &block)
+  end
+  
+  def regexp(*attrs, &block)
+    attrs << {:cast => Regexp}
+    set(*attrs, &block)
+  end
+  alias_method :regex, :regexp
+  
+  def regexp!(*attrs, &block)
+    attrs << {:cast => Regexp}
+    set!(*attrs, &block)
+  end
+  alias_method :regex!, :regexp!
+  
+  def boolean(*attrs, &block)
+    attrs.collect!{|a| a.to_s =~ /\?$/ ? a : (a.to_s + '?').to_sym}
+    set(*attrs, &block)
+  end
+  
+end
+
 class RequiredSwitchMissing < RuntimeError; end
 
 class Switches
   
-  def initialize
+  def initialize(include_casting_interface_methods = true)
+    self.class.send(:include, CastingInterfaceMethods) if include_casting_interface_methods
     @settings = OpenStruct.new
     @op = OptionParser.new
     @required_switches = []
@@ -124,18 +187,20 @@ class Switches
   alias_method :allowed!, :set!
   
   def required(*attrs, &block)
-    @required_switches = @required_switches + attrs.collect{|a| a.to_s.delete('!')}
+    @required_switches = @required_switches + attrs.collect{|a| a.to_s}
     set(*attrs, &block)
   end
   alias_method :mandatory, :required
   alias_method :necessary, :required
+  alias_method :compulsory, :required
   
   def required!(*attrs, &block)
-    @required_switches = @required_switches + attrs.collect{|a| a.to_s.delete('!')}
+    @required_switches = @required_switches + attrs.collect{|a| a.to_s}
     set!(*attrs, &block)
   end
   alias_method :mandatory!, :required!
   alias_method :necessary!, :required!
+  alias_method :compulsory!, :required!
   
   def parse!
     @op.parse!
@@ -151,10 +216,10 @@ class Switches
   
   def do_set(requires_argument, *attrs, &block)
     options = attrs.extract_options!
-    @all_switches = @all_switches + attrs.collect{|a| a.to_s.delete('!')}
+    @all_switches = @all_switches + attrs.collect{|a| a.to_s}
     @op.on(*on_args(requires_argument, options, *attrs, &block)) do |o|
       attrs.each do |attr|
-        @settings.send(attr.to_s.delete('!') + '=', o)
+        @settings.send(attr.to_s + '=', o)
       end
     end
   end
@@ -169,14 +234,12 @@ class Switches
   
   def on_args(requires_argument, options, *attrs, &block)
     on_args = []
-    boolean_switch = true
     attrs.collect{|e| e.to_s}.each do |attr|
-      boolean_switch = false if !attr.boolean_switch?
-      on_args << "-#{attr.long_arg? ? '-' : ''}#{attr.to_s.delete('?').delete('!')}"
+      on_args << "-#{attr.long_switch? ? '-' : ''}#{attr.to_s.delete('?')}"
     end
     if requires_argument
       on_args << (on_args.pop + ' REQUIRED_ARGUMENT')
-    elsif boolean_switch
+    elsif !!attrs.last.to_s.boolean_switch?
       on_args << (on_args.pop)
     else
       on_args << (on_args.pop + ' [OPTIONAL_ARGUMENT]')
@@ -188,7 +251,8 @@ class Switches
   
   def check_required_switches
     @required_switches.each do |required_switch|
-      raise(RequiredSwitchMissing, "required switch, #{required_switch}, is missing") unless supplied_switches.include?(required_switch)
+      message = "required switch, -#{required_switch.long_switch? ? '-' : ''}#{required_switch.to_s.delete('?')}, is missing"
+      raise(RequiredSwitchMissing, message) unless supplied_switches.include?(required_switch)
     end
   end
   
@@ -205,12 +269,14 @@ if __FILE__ == $0
     s.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
     s.set!(:h, :host, :hostname){'The hostname switch is optional, but has a mandatory argument if used.'}
     s.required(:a, :app, :application){'Necessarily provide an application name, but an argument is optional.'}
-    s.required!(:b, :bless, :blessing){'Blessings are always necessary, yet they will always cause an argument!'}
+    s.required!(:bless, :blessing){'Blessings are always necessary, yet they will always cause an argument!'}
     s.set(:s?, :sec?, :secure?){'Optionally use a secure connection.'}
     s.required(:r?, :req?, :required?){'Required?'}
     s.optional(:d?, :del?, :delete?){'Optionally delete after action?'}
     s.optional!(:p, :port, :port_number, :cast => Integer){'Otherwise use the default port and cast ye spell and turn it into an integer.'}
-    s.optional!(:t, :temp, :temperature, :cast => Float){'Taken in the temperature as a float.'}
+    s.optional!(:t, :temp, :temperature, :cast => Float){'Temperature will be cast as a float.'}
+    s.integer(:i, :int){'Cast me as an int.'}
+    s.boolean(:yes_or_no){'This seems like a step backwards by comparison with ?-methods...'}
   end
   pp switches.filename
   pp switches.hostname
@@ -222,6 +288,8 @@ if __FILE__ == $0
   pp switches.port
   pp switches.degrees
   pp switches.temperature
+  pp switches.int
+  pp switches.yes_or_no?
   puts
   puts switches.help
   puts
