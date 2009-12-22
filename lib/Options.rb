@@ -1,7 +1,7 @@
 # Options
 
 # 20090207
-# 0.4.2
+# 0.4.3
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -11,15 +11,21 @@
 # 2. Refactored #on_args, and while it is shorter, I'm doubtful that it is clearer as to what is happening.  I think the longer one may have been clearer?...  
 # 1/2
 # 3. Removed the OptionParser instance method specific methods on Options with a 'smarter' #method_missing.  I'm not sure that this is wise, since in a way I've lost some control over the interface and polluted the 'namespace' for potential switch names.  I'll reconsider this one...  
+# 2/3
+# 4. Refactored #on_args a tiny bit.  
 
 # Todo:
-# 1. Clean up #set.  
+# 1. Clean up #set.  Done as of 0.4.0.  
 
 # Ideas: 
 # 1. Use ! for options with required arguments?  
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
+
+# Dependencies: 
+# 1. Standard Ruby Library
+# 2. Array#last
 
 require 'ostruct'
 require 'optparse'
@@ -73,15 +79,14 @@ class Options
   def on_args(*attrs)
     on_args = []
     boolean = true
-    attrs.each do |attr|
-      attr = attr.to_s
+    attrs.collect{|e| e.to_s}.each do |attr|
       boolean = false if !attr.boolean_arg?
       if attr.short_arg?
         on_args << "-#{attr.to_s.gsub('?','')}"
       else
         on_args << "--#{attr.to_s.gsub('?','')}"
       end # if
-    end # attrs.each...
+    end # attrs.collect...each...
     if !boolean
       on_args << (on_args.last! + ' <>')
     end
