@@ -1,9 +1,9 @@
 # Options
 
-# 20091218, 19
-# 0.8.0
+# 20091219
+# 0.8.1
 
-# Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
+# Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
@@ -20,6 +20,9 @@
 
 # Changes since: 0.7:
 # 1. Required options are enforced now.  
+# 0/1
+# 2. Moved required option checking to it's own private method.  
+# 3. Removed some of the self-run test stuff.  
 
 require 'ostruct'
 require 'optparse'
@@ -70,10 +73,7 @@ class Options
     if block_given?
       yield self
       parse!
-    end
-    required_options = @options.instance_variable_get(:@table).keys.select{|e| e.to_s =~ /!/}
-    required_options.each do |opt|
-      raise RequiredOptionNotProvidedError if @options.send(opt) == nil
+      check_required_options
     end
   end
   
@@ -118,46 +118,17 @@ class Options
     on_args
   end
   
+  def check_required_options
+    required_options = @options.instance_variable_get(:@table).keys.select{|e| e.to_s =~ /!/}
+    required_options.each do |opt|
+      raise RequiredOptionNotProvidedError if @options.send(opt) == nil
+    end
+  end
+  
 end
 
 if __FILE__ == $0
   require 'pp'
-  
-  # options = Options.new
-  # 
-  # pp options.application
-  # pp options.hostname!
-  # pp options.secure?
-  # pp options.filename
-  # puts
-  # options.set(:a, :app, :application)
-  # options.soft_parse
-  # pp options.application
-  # pp options.hostname!
-  # pp options.secure?
-  # pp options.filename
-  # puts
-  # options.set(:h!, :host!, :hostname!)
-  # options.soft_parse
-  # pp options.application
-  # pp options.hostname!
-  # pp options.secure?
-  # pp options.filename
-  # puts
-  # options.set(:s?, :sec?, :secure?)
-  # options.soft_parse
-  # pp options.application
-  # pp options.hostname!
-  # pp options.secure?
-  # pp options.filename
-  # puts
-  # options.set(:f, :file, :filename){'The name of a file to be read in.'}
-  # options.soft_parse
-  # pp options.application
-  # pp options.hostname!
-  # pp options.secure?
-  # pp options.filename
-  puts
   options = Options.new do |opts|
     opts.banner = 'Here is a banner.'
     opts.set(:a, :app, :application){'Optionally provide an application name.'}
@@ -171,5 +142,4 @@ if __FILE__ == $0
   pp options.filename
   puts
   puts options.help
-  
 end
