@@ -1,26 +1,12 @@
 # Options
 
-# 20090213
-# 0.4.6
+# 20090321, 22
+# 0.5.0
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
-# Changes since: 0.3: 
-# 1. I've removed the switch list from set and changed it to be a list of switches which defines multiple methods, one per switch.  Much nicer!  
-# 0/1
-# 2. Refactored #on_args, and while it is shorter, I'm doubtful that it is clearer as to what is happening.  I think the longer one may have been clearer?...  
-# 1/2
-# 3. Removed the OptionParser instance method specific methods on Options with a 'smarter' #method_missing.  I'm not sure that this is wise, since in a way I've lost some control over the interface and polluted the 'namespace' for potential switch names.  I'll reconsider this one...  
-# 2/3
-# 4. Refactored #on_args a tiny bit.  
-# 3/4
-# 5. - __FILE__ == $0 stuff.  
-# 4/5
-# 6. Refactored #on_args some more, and while it is shorter again, I remain doubtful that it is clearer as to what is happening.  I'm still suspicious that the longer one was clearer?...  
-# 5/6
-# 7. + Note #2.  
-# 8. A slight amendation to Dependency #2.  
-# 9. - self-run stuff.  
+# Changes since: 0.4: 
+# 1. + OptionParser#soft_parse.  This was needed for #attribute in Attributes to work correctly.  Perhaps it doesn't need to strictly be a part of Options, but it'll do in here for now.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
@@ -30,7 +16,7 @@
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
-# 2. An additional limitation is that the Options class cannot have option-methods which are unique to the OptionParser class as any OptionParser methods called are forwarded to the OptionParser instance in the Options class.  
+# 2. An additional limitation is that the Options class cannot have option-methods which are the same as any OptionParser methods since these will be forwarded to the OptionParser instance in the Options class.  
 
 # Dependencies: 
 # 1. Standard Ruby Library
@@ -39,6 +25,7 @@
 require 'ostruct'
 require 'optparse'
 require 'Array/lastX'
+require 'pp'
 
 class String
   
@@ -52,6 +39,22 @@ class String
   
   def boolean_arg?
     self =~ /\?$/
+  end
+  
+end
+
+class OptionParser
+  
+  def soft_parse
+    argv = default_argv.dup
+    loop do
+      begin
+        parse(argv)
+        return
+      rescue OptionParser::InvalidOption
+        argv.shift
+      end
+    end
   end
   
 end
@@ -95,5 +98,24 @@ class Options
     on_args << (on_args.last! + ' <>') if !boolean
     on_args
   end
+  
+end
+
+if __FILE__ == $0
+  
+  options = Options.new
+  
+  pp options.application
+  pp options.hostname
+  
+  options.set(:h, :host, :hostname)
+  options.soft_parse
+  pp options.application
+  pp options.hostname
+  
+  options.set(:a, :app, :application)
+  options.soft_parse
+  pp options.application
+  pp options.hostname
   
 end
