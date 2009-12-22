@@ -1,7 +1,7 @@
 # Options
 
-# 20091203
-# 0.7.0
+# 20091218, 19
+# 0.8.0
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -18,9 +18,8 @@
 # Dependencies: 
 # 1. Standard Ruby Library
 
-# Changes since: 0.6: 
-# 1. Option summaries can now be included by passing a block to Options#set.  
-# 2. Discovered(?!) that OptionParser#banner= and OptionParser#help make use of Options#method_missing routing to direct calls to the appropriate place to enable usage output.  
+# Changes since: 0.7:
+# 1. Required options are enforced now.  
 
 require 'ostruct'
 require 'optparse'
@@ -61,6 +60,8 @@ class OptionParser
   
 end
 
+class RequiredOptionNotProvidedError < RuntimeError; end
+
 class Options
   
   def initialize
@@ -69,6 +70,10 @@ class Options
     if block_given?
       yield self
       parse!
+    end
+    required_options = @options.instance_variable_get(:@table).keys.select{|e| e.to_s =~ /!/}
+    required_options.each do |opt|
+      raise RequiredOptionNotProvidedError if @options.send(opt) == nil
     end
   end
   
@@ -118,46 +123,46 @@ end
 if __FILE__ == $0
   require 'pp'
   
-  options = Options.new
-  
-  pp options.application
-  pp options.hostname!
-  pp options.secure?
-  pp options.filename
-  puts
-  options.set(:a, :app, :application)
-  options.soft_parse
-  pp options.application
-  pp options.hostname!
-  pp options.secure?
-  pp options.filename
-  puts
-  options.set(:h!, :host!, :hostname!)
-  options.soft_parse
-  pp options.application
-  pp options.hostname!
-  pp options.secure?
-  pp options.filename
-  puts
-  options.set(:s?, :sec?, :secure?)
-  options.soft_parse
-  pp options.application
-  pp options.hostname!
-  pp options.secure?
-  pp options.filename
-  puts
-  options.set(:f, :file, :filename){'The name of a file to be read in.'}
-  options.soft_parse
-  pp options.application
-  pp options.hostname!
-  pp options.secure?
-  pp options.filename
+  # options = Options.new
+  # 
+  # pp options.application
+  # pp options.hostname!
+  # pp options.secure?
+  # pp options.filename
+  # puts
+  # options.set(:a, :app, :application)
+  # options.soft_parse
+  # pp options.application
+  # pp options.hostname!
+  # pp options.secure?
+  # pp options.filename
+  # puts
+  # options.set(:h!, :host!, :hostname!)
+  # options.soft_parse
+  # pp options.application
+  # pp options.hostname!
+  # pp options.secure?
+  # pp options.filename
+  # puts
+  # options.set(:s?, :sec?, :secure?)
+  # options.soft_parse
+  # pp options.application
+  # pp options.hostname!
+  # pp options.secure?
+  # pp options.filename
+  # puts
+  # options.set(:f, :file, :filename){'The name of a file to be read in.'}
+  # options.soft_parse
+  # pp options.application
+  # pp options.hostname!
+  # pp options.secure?
+  # pp options.filename
   puts
   options = Options.new do |opts|
     opts.banner = 'Here is a banner.'
-    opts.set(:h!, :host!, :hostname!){'The hostname is required.'}
     opts.set(:a, :app, :application){'Optionally provide an application name.'}
     opts.set(:s?, :sec?, :secure?){'Use a secure connection?'}
+    opts.set(:h!, :host!, :hostname!){'The hostname is required.'}
     opts.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
   end
   pp options.application
