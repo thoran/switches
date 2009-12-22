@@ -1,7 +1,7 @@
 # Switches
 
 # 20091222
-# 0.9.2
+# 0.9.3
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -50,6 +50,8 @@
 # 22. ~ Switches#do_set + ...options.  
 # 23. ~ Switches#on_args + ...options[:cast].  
 # 24. ~ self-run section to do a simple test of casting.  
+# 2/3
+# 25. /Options.rb/Switches.rb/.  
 
 require 'ostruct'
 require 'optparse'
