@@ -1,7 +1,7 @@
 # Options
 
 # 20090205
-# 0.2.5
+# 0.2.6
 
 require 'ostruct'
 require 'optparse'
@@ -23,6 +23,10 @@ class Options
   
   def on(*args, &block)
     @op.on(*args, &block)
+  end
+  
+  def banner=(s)
+    @op.banner = s
   end
   
   def parse!
@@ -54,14 +58,14 @@ if __FILE__ == $0
   # puts options.form_name
   # puts options.form_number
   
-  options = Options.new do |o|
-    o.on('-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.') do |option|
-      o.form_number = option
-    end
-    o.on('-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.') do |option|
-      o.form_name = option
-    end
+  options = Options.new
+  options.on('-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.') do |option|
+    options.form_number = option
   end
+  options.on('-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.') do |option|
+    options.form_name = option
+  end
+  options.parse!
   
   puts options.form_name
   puts options.form_number
