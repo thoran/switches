@@ -1,24 +1,41 @@
 # Options
 
-# 20090206
-# 0.3.4
+# 20090207
+# 0.4.0
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
-# Changes: 
-# 1. It is now possible to just use the method name.  
-# 0/1
-# 2. It is now possible to use short args.  
-# 3. It is now possible to have boolean switches.  
-# 1/2
-# 4. It is now possible to have boolean switches which are implied, since I've removed the possibility for explicit switches.  
-# 2/3
-# 5. The begin-rescue stuff didn't work, and I don't care why right now.  So, instead I am using arguments to set which may or may not include a ? as per Ruby.  This works for both long and short switches.  
-# 3/4
-# 6. Took the diagnosticy stuff out.  
+# Changes since: 0.3: 
+# 1. I've removed the switch list from set and changed it to be a list of switches which defines multiple methods, one per switch.  Much nicer!  
+
+# Todo:
+# 1. Clean up #set.  
+
+# Ideas: 
+# 1. Use ! for options with required arguments?  
+
+# Notes: 
+# 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
 
 require 'ostruct'
 require 'optparse'
+require 'Array/lastX'
+
+class String
+  
+  def short_arg?
+    self =~ /^.$/ || self =~ /^.\?$/
+  end
+  
+  def long_arg?
+    self =~ /^..+$/ || self =~ /^..+\?$/
+  end
+  
+  def boolean_arg?
+    self =~ /\?$/
+  end
+  
+end # class String
 
 class Options
   
@@ -31,21 +48,13 @@ class Options
     end
   end
   
-  def set(attr, *args)
-    if args.empty?
-      case attr.to_s
-      when /^.\?$/ # -s
-        @op.on("-#{attr.to_s.gsub('?','')}"){|o| @options.send(attr.to_s + '=', o)}
-      when /^.$/ # -s arg
-        @op.on("-#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
-      when /^..+\?$/ # --switch
-        @op.on("--#{attr.to_s.gsub('?','')}"){|o| @options.send(attr.to_s + '=', o)}
-      when /^..+$/ # --switch arg
-        @op.on("--#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
-      end # case
-    else
-      @op.on(*args){|o| @options.send(attr.to_s + '=', o)}
-    end # if
+  def set(*attrs)
+    @myvalue = nil
+    @op.on(*on_args(*attrs)) do |o|
+      attrs.each do |attr|
+        @options.send(attr.to_s + '=', o)
+      end
+    end
   end
   
   def on(*args, &block)
@@ -64,4 +73,43 @@ class Options
     @options.send(method_name.to_s, *args, &block)
   end
   
+  private
+  
+  def on_args(*attrs)
+    on_args = []
+    boolean = true
+    attrs.each do |attr|
+      attr = attr.to_s
+      if attr.short_arg? && !attr.boolean_arg? # -s arg
+        on_args << "-#{attr}"
+        boolean = false
+      elsif attr.short_arg? && attr.boolean_arg? # -s
+        on_args << "-#{attr.to_s.gsub('?','')}"
+      elsif attr.long_arg? && !attr.boolean_arg? # --switch arg
+        on_args << "--#{attr}"
+        boolean = false
+      elsif attr.long_arg? && attr.boolean_arg? # --switch
+        on_args << "--#{attr.to_s.gsub('?','')}"
+      end # if
+    end # attrs.each...
+    if !boolean
+      on_args << (on_args.last! + ' <>')
+    end
+    on_args
+  end
+  
+end
+
+if __FILE__ == $0
+  options = Options.new do |opts|
+    opts.set(:r?, :form_required?, :required?)
+    opts.set(:f, :form)
+  end
+  
+  puts options.r?
+  puts options.form_required?
+  puts options.required?
+  
+  puts options.f
+  puts options.form
 end
