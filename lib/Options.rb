@@ -1,7 +1,7 @@
 # Switches
 
-# 20091220, 21
-# 0.9.0
+# 20091222
+# 0.9.1
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided.  
 
@@ -15,7 +15,7 @@
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
 # 2. An additional limitation is that the Options class cannot have option-methods which are the same as any OptionParser methods since these will be forwarded to the OptionParser instance in the Options class.  
 # 3. In 0.9.0 I finally had a clear demarcation between switch arguments and switches themselves being mandatory or optional.  This is way more complicated since the adding of numerous methods and instance variables to Switches to accommodate this distiction.  
-# 4. Not that happy with apparently using exclaiming methods in the definition block and then stripping the '!' from the method name before being supplied to OpenStruct.  What to do?...  
+# 4. Not that happy with apparently using exclaiming methods in the definition block and then stripping the '!' from the method name before being supplied to OpenStruct.  What to do?...  (Moved the '!' to the method(s) on Switches instead as of 0.9.1.)  
 
 # Dependencies: 
 # 1. Standard Ruby Library
@@ -30,6 +30,13 @@
 # 7. + Switches#supplied_switches.  
 # 8. + Switches#set_unused_switches_to_nil.  
 # 9. ~ self-run section to reflect new interface.  
+# 0/1
+# 10. + Switches#do_set.  
+# 11. ~ Switches#set.  
+# 12. + Switches#set!.  
+# 13. + Switches#required!.  
+# 14. - String#required_arg?.  
+# 15. ~ Switches#on_args + requires_argument.  
 
 require 'ostruct'
 require 'optparse'
@@ -46,10 +53,6 @@ class String
   
   def boolean_switch?
     self =~ /\?$/
-  end
-  
-  def required_arg?
-    self =~ /!$/
   end
   
 end
@@ -86,14 +89,16 @@ class Switches
   end
   
   def set(*attrs, &block)
-    @all_switches = @all_switches + attrs.collect{|a| a.to_s.delete('!')}
-    @op.on(*on_args(*attrs, &block)) do |o|
-      attrs.each do |attr|
-        @settings.send(attr.to_s.delete('!') + '=', o)
-      end
-    end
+    requires_argument = false
+    do_set(requires_argument, *attrs, &block)
   end
   alias_method :optional, :set
+  
+  def set!(*attrs, &block)
+    requires_argument = true
+    do_set(requires_argument, *attrs, &block)
+  end
+  alias_method :optional!, :set!
   
   def required(*attrs, &block)
     @required_switches = @required_switches + attrs.collect{|a| a.to_s.delete('!')}
@@ -101,6 +106,11 @@ class Switches
   end
   alias_method :mandatory, :required
   alias_method :necessary, :required
+  
+  def required!(*attrs, &block)
+    @required_switches = @required_switches + attrs.collect{|a| a.to_s.delete('!')}
+    set!(*attrs, &block)
+  end
   
   def parse!
     @op.parse!
@@ -114,6 +124,15 @@ class Switches
   
   private
   
+  def do_set(requires_argument, *attrs, &block)
+    @all_switches = @all_switches + attrs.collect{|a| a.to_s.delete('!')}
+    @op.on(*on_args(requires_argument, *attrs, &block)) do |o|
+      attrs.each do |attr|
+        @settings.send(attr.to_s.delete('!') + '=', o)
+      end
+    end
+  end
+  
   def method_missing(method_name, *args, &block)
     if (@op.methods - Switches.instance_methods).include?(method_name.to_s)
       @op.send(method_name.to_s, *args, &block)
@@ -122,16 +141,14 @@ class Switches
     end
   end
   
-  def on_args(*attrs, &block)
+  def on_args(requires_argument, *attrs, &block)
     on_args = []
-    required_argument = true
     boolean_switch = true
     attrs.collect{|e| e.to_s}.each do |attr|
-      required_argument = false if !attr.required_arg?
       boolean_switch = false if !attr.boolean_switch?
       on_args << "-#{attr.long_arg? ? '-' : ''}#{attr.to_s.delete('?').delete('!')}"
     end
-    if required_argument
+    if requires_argument
       on_args << (on_args.pop + ' REQUIRED_ARGUMENT')
     elsif boolean_switch
       on_args << (on_args.pop)
@@ -159,9 +176,9 @@ if __FILE__ == $0
   switches = Switches.new do |s|
     s.banner = 'Here is a banner.'
     s.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
-    s.set(:h!, :host!, :hostname!){'The hostname switch is optional, but has a mandatory argument if used.'}
+    s.set!(:h, :host, :hostname){'The hostname switch is optional, but has a mandatory argument if used.'}
     s.required(:a, :app, :application){'Necessarily provide an application name, but an argument is optional.'}
-    s.required(:b!, :bless!, :blessing!){'Blessings are always necessary, although they will always cause an argument!'}
+    s.required!(:b, :bless, :blessing){'Blessings are always necessary, although they will always cause an argument!'}
     s.set(:s?, :sec?, :secure?){'Optionally use a secure connection.'}
     s.required(:r?, :req?, :required?){'Required?'}
     s.optional(:d?, :del?, :delete?){'Optionally delete after action?'}
