@@ -1,7 +1,7 @@
 # Options
 
 # 20090204, 05
-# 0.2.1
+# 0.2.2
 
 # Description: 
 
@@ -33,10 +33,11 @@ require 'optparse'
 require 'ostruct'
 require 'pp'
 
-class Options < OpenStruct
+class Options
   
   def initialize
     @op = OptionParser.new
+    @options = OpenStruct.new
     if block_given?
       yield self
       parse!
@@ -46,7 +47,7 @@ class Options < OpenStruct
   
   def set(attr, *opts)
     @op.on(*opts) do |opt|
-      self.send(attr.to_s + '=', opt)
+      @options.send(attr.to_s + '=', opt)
     end
   end
   
