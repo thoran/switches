@@ -1,7 +1,7 @@
 # Options
 
 # 20090206
-# 0.3.2
+# 0.3.3
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -12,6 +12,8 @@
 # 3. It is now possible to have boolean switches.  
 # 1/2
 # 4. It is now possible to have boolean switches which are implied, since I've removed the possibility for explicit switches.  
+# 2/3
+# 5. The begin-rescue stuff didn't work, and I don't care why right now.  So, instead I am using arguments to set which may or may not include a ? as per Ruby.  This works for both long and short switches.  
 
 require 'ostruct'
 require 'optparse'
@@ -28,20 +30,23 @@ class Options
   end
   
   def set(attr, *args)
+    pp attr
+    pp attr.to_s =~ /^.\?$/
+    pp attr.to_s =~ /^.$/
+    pp attr.to_s =~ /^..+\?$/
+    pp attr.to_s =~ /^.[^?]+$/
+    puts
+    
     if args.empty?
-      case attr
-      when /^.$/
-        begin
-          @op.on("-#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
-        rescue OptionParser::MissingArgument
-          @op.on("-#{attr}"){|o| @options.send(attr.to_s + '=', o)}
-        end # begin
-      else
-        begin
-          @op.on("--#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
-        rescue OptionParser::MissingArgument
-          @op.on("--#{attr}"){|o| @options.send(attr.to_s + '=', o)}
-        end # begin
+      case attr.to_s
+      when /^.\?$/ # -s
+        @op.on("-#{attr.to_s.gsub('?','')}"){|o| @options.send(attr.to_s + '=', o)}
+      when /^.$/ # -s arg
+        @op.on("-#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
+      when /^..+\?$/ # --switch
+        @op.on("--#{attr.to_s.gsub('?','')}"){|o| @options.send(attr.to_s + '=', o)}
+      when /^..+$/ # --switch arg
+        @op.on("--#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
       end # case
     else
       @op.on(*args){|o| @options.send(attr.to_s + '=', o)}
@@ -64,19 +69,20 @@ class Options
     @options.send(method_name.to_s, *args, &block)
   end
   
-  private
-  
-  
 end
 
 if __FILE__ == $0
   require 'pp'
   
   options = Options.new do |opts|
-    opts.set(:form_number)
+    opts.set(:form_required?)
     opts.set(:form_name)
+    opts.set(:n?)
+    opts.set(:s)
   end
   
+  puts options.form_required?
   puts options.form_name
-  puts options.form_number
+  puts options.n?
+  puts options.s
 end
