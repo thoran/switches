@@ -1,7 +1,7 @@
 # Options
 
 # 20090206
-# 0.3.1
+# 0.3.2
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -10,6 +10,8 @@
 # 0/1
 # 2. It is now possible to use short args.  
 # 3. It is now possible to have boolean switches.  
+# 1/2
+# 4. It is now possible to have boolean switches which are implied, since I've removed the possibility for explicit switches.  
 
 require 'ostruct'
 require 'optparse'
@@ -27,26 +29,23 @@ class Options
   
   def set(attr, *args)
     if args.empty?
-      if attr.is_a?(Hash)
-        case attr.key.to_sym
-        when :boolean, :noarg, :no_arg
-          @op.on("-#{attr}"){|o| @options.send(attr.to_s + '=', o)}
-        when :arg
-          @op.on("--#{attr}"){|o| @options.send(attr.to_s + '=', o)}
-        else
-          @op.on("-#{attr}"){|o| @options.send(attr.to_s + '=', o)}
-        end
-      else
-        case attr
-        when /^.$/
+      case attr
+      when /^.$/
+        begin
           @op.on("-#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
-        else
+        rescue OptionParser::MissingArgument
+          @op.on("-#{attr}"){|o| @options.send(attr.to_s + '=', o)}
+        end # begin
+      else
+        begin
           @op.on("--#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
-        end
-      end
+        rescue OptionParser::MissingArgument
+          @op.on("--#{attr}"){|o| @options.send(attr.to_s + '=', o)}
+        end # begin
+      end # case
     else
       @op.on(*args){|o| @options.send(attr.to_s + '=', o)}
-    end
+    end # if
   end
   
   def on(*args, &block)
