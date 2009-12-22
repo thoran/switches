@@ -1,7 +1,12 @@
 # Options
 
-# 20090205
-# 0.2.7
+# 20090206
+# 0.3.0
+
+# Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
+
+# Changes: 
+# 1. It is now possible to just use the method name.  
 
 require 'ostruct'
 require 'optparse'
@@ -18,7 +23,11 @@ class Options
   end
   
   def set(attr, *args)
-    @op.on(*args){|o| @options.send(attr.to_s + '=', o)}
+    if args.empty?
+      @op.on("--#{attr} <>"){|o| @options.send(attr.to_s + '=', o)}
+    else
+      @op.on(*args){|o| @options.send(attr.to_s + '=', o)}
+    end
   end
   
   def on(*args, &block)
@@ -42,10 +51,10 @@ end
 if __FILE__ == $0
   require 'pp'
   
-  options = Options.new
-  options.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
-  options.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
-  options.parse!
+  options = Options.new do |opts|
+    opts.set(:form_number)
+    opts.set(:form_name)
+  end
   
   puts options.form_name
   puts options.form_number
