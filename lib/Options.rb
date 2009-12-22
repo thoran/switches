@@ -1,7 +1,7 @@
 # Options
 
 # 20090205
-# 0.2.6
+# 0.2.7
 
 require 'ostruct'
 require 'optparse'
@@ -42,29 +42,9 @@ end
 if __FILE__ == $0
   require 'pp'
   
-  # options = Options.new
-  # options.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
-  # options.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
-  # options.parse!
-  #
-  # puts options.form_name
-  # puts options.form_number
-  
-  # options = Options.new do |o|
-  #   o.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
-  #   o.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
-  # end
-  # 
-  # puts options.form_name
-  # puts options.form_number
-  
   options = Options.new
-  options.on('-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.') do |option|
-    options.form_number = option
-  end
-  options.on('-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.') do |option|
-    options.form_name = option
-  end
+  options.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
+  options.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
   options.parse!
   
   puts options.form_name
