@@ -1,7 +1,7 @@
 # Options
 
-# 20090927
-# 0.6.0
+# 20091203
+# 0.6.1
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -26,6 +26,8 @@
 #   c. ~ String#long_arg?
 #   d. ~ Options#on_args
 # 3. ~ Options#method_missing (Fixes a minor error with which methods to 'subtract'.)
+# 0/1
+# 4. All options are initially set to nil now, so as there is a method available, even if it returns nil.  
 
 require 'ostruct'
 require 'optparse'
@@ -78,6 +80,9 @@ class Options
   end
   
   def set(*attrs)
+    attrs.each do |attr|
+      @options.send(attr.to_s + '=', nil)
+    end
     @op.on(*on_args(*attrs)) do |o|
       attrs.each do |attr|
         @options.send(attr.to_s + '=', o)
