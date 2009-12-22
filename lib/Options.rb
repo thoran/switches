@@ -1,7 +1,7 @@
 # Options
 
 # 20090205
-# 0.2.4
+# 0.2.5
 
 require 'ostruct'
 require 'optparse'
@@ -21,6 +21,10 @@ class Options
     @op.on(*args){|o| @options.send(attr.to_s + '=', o)}
   end
   
+  def on(*args, &block)
+    @op.on(*args, &block)
+  end
+  
   def parse!
     @op.parse!
   end
@@ -38,21 +42,26 @@ if __FILE__ == $0
   # options.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
   # options.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
   # options.parse!
-  # 
-  # options.methods.include?('form_name')
-  # options.methods.include?('form_number')
+  #
+  # puts options.form_name
+  # puts options.form_number
+  
+  # options = Options.new do |o|
+  #   o.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
+  #   o.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
+  # end
   # 
   # puts options.form_name
   # puts options.form_number
   
-  
   options = Options.new do |o|
-    o.set(:form_number, '-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.')
-    o.set(:form_name, '-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.')
+    o.on('-n', '--form-number', '--form_number <form_number>', 'This will set the number of the form in order of appearance on the page.  Use zero-based indexing.') do |option|
+      o.form_number = option
+    end
+    o.on('-f', '--form', '--form-name', '--form_name <form_name>', 'If left empty, the first form on the page will be used.') do |option|
+      o.form_name = option
+    end
   end
-  
-  options.methods.include?('form_name')
-  options.methods.include?('form_number')
   
   puts options.form_name
   puts options.form_number
