@@ -1,7 +1,7 @@
 # Options
 
 # 20091203
-# 0.6.1
+# 0.7.0
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
@@ -9,7 +9,7 @@
 # 1. Clean up #set.  Done as of 0.4.0.  
 
 # Ideas: 
-# 1. Use ! for options with required arguments?  
+# 1. Use ! for options with required arguments?  Done as of 0.6.0.  
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
@@ -18,16 +18,9 @@
 # Dependencies: 
 # 1. Standard Ruby Library
 
-# Changes since: 0.5: 
-# 1. - require 'Array/lastX' (Using Array#pop instead.)
-# 2. Handles 'required' options by use of 'exclamation methods', even though OptionParser doesn't really do anything with that information.  Should throw an error IMO.  
-#   a. + String#required_arg?
-#   b. ~ String#short_arg?
-#   c. ~ String#long_arg?
-#   d. ~ Options#on_args
-# 3. ~ Options#method_missing (Fixes a minor error with which methods to 'subtract'.)
-# 0/1
-# 4. All options are initially set to nil now, so as there is a method available, even if it returns nil.  
+# Changes since: 0.6: 
+# 1. Option summaries can now be included by passing a block to Options#set.  
+# 2. Discovered(?!) that OptionParser#banner= and OptionParser#help make use of Options#method_missing routing to direct calls to the appropriate place to enable usage output.  
 
 require 'ostruct'
 require 'optparse'
@@ -79,11 +72,11 @@ class Options
     end
   end
   
-  def set(*attrs)
+  def set(*attrs, &block)
     attrs.each do |attr|
       @options.send(attr.to_s + '=', nil)
     end
-    @op.on(*on_args(*attrs)) do |o|
+    @op.on(*on_args(*attrs, &block)) do |o|
       attrs.each do |attr|
         @options.send(attr.to_s + '=', o)
       end
@@ -100,7 +93,7 @@ class Options
     end
   end
   
-  def on_args(*attrs)
+  def on_args(*attrs, &block)
     on_args = []
     boolean = true
     required = true
@@ -116,6 +109,8 @@ class Options
     else
       on_args << (on_args.pop + ' [OPTIONAL]')
     end
+    on_args << yield if block
+    on_args
   end
   
 end
@@ -128,23 +123,48 @@ if __FILE__ == $0
   pp options.application
   pp options.hostname!
   pp options.secure?
-  
-  options.set(:h!, :host!, :hostname!)
-  options.soft_parse
-  pp options.application
-  pp options.hostname!
-  pp options.secure?
-  
+  pp options.filename
+  puts
   options.set(:a, :app, :application)
   options.soft_parse
   pp options.application
   pp options.hostname!
   pp options.secure?
-  
+  pp options.filename
+  puts
+  options.set(:h!, :host!, :hostname!)
+  options.soft_parse
+  pp options.application
+  pp options.hostname!
+  pp options.secure?
+  pp options.filename
+  puts
   options.set(:s?, :sec?, :secure?)
   options.soft_parse
   pp options.application
   pp options.hostname!
   pp options.secure?
+  pp options.filename
+  puts
+  options.set(:f, :file, :filename){'The name of a file to be read in.'}
+  options.soft_parse
+  pp options.application
+  pp options.hostname!
+  pp options.secure?
+  pp options.filename
+  puts
+  options = Options.new do |opts|
+    opts.banner = 'Here is a banner.'
+    opts.set(:h!, :host!, :hostname!){'The hostname is required.'}
+    opts.set(:a, :app, :application){'Optionally provide an application name.'}
+    opts.set(:s?, :sec?, :secure?){'Use a secure connection?'}
+    opts.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
+  end
+  pp options.application
+  pp options.hostname!
+  pp options.secure?
+  pp options.filename
+  puts
+  puts options.help
   
 end
