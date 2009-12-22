@@ -1,12 +1,14 @@
 # Options
 
 # 20090207
-# 0.4.0
+# 0.4.1
 
 # Description: This provides for a nice wrapper to OptionParser to also act as a store for options provided
 
 # Changes since: 0.3: 
 # 1. I've removed the switch list from set and changed it to be a list of switches which defines multiple methods, one per switch.  Much nicer!  
+# 0/1
+# 2. Refactored #on_args, and while it is shorter, I'm doubtful that it is clearer as to what is happening.  I think the longer one may have been clearer?...  
 
 # Todo:
 # 1. Clean up #set.  
@@ -49,7 +51,6 @@ class Options
   end
   
   def set(*attrs)
-    @myvalue = nil
     @op.on(*on_args(*attrs)) do |o|
       attrs.each do |attr|
         @options.send(attr.to_s + '=', o)
@@ -80,15 +81,10 @@ class Options
     boolean = true
     attrs.each do |attr|
       attr = attr.to_s
-      if attr.short_arg? && !attr.boolean_arg? # -s arg
-        on_args << "-#{attr}"
-        boolean = false
-      elsif attr.short_arg? && attr.boolean_arg? # -s
+      boolean = false if !attr.boolean_arg?
+      if attr.short_arg?
         on_args << "-#{attr.to_s.gsub('?','')}"
-      elsif attr.long_arg? && !attr.boolean_arg? # --switch arg
-        on_args << "--#{attr}"
-        boolean = false
-      elsif attr.long_arg? && attr.boolean_arg? # --switch
+      else
         on_args << "--#{attr.to_s.gsub('?','')}"
       end # if
     end # attrs.each...
