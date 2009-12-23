@@ -1,7 +1,7 @@
 # Switches
 
-# 20091222
-# 0.9.4
+# 20091223
+# 0.9.5
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -10,14 +10,13 @@
 
 # Ideas: 
 # 1. Use ! for options with required switches?  Done as of 0.6.0.  (Changed to being for required arguments in 0.9.0 however.)
-# 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  
+# 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  OK, maybe sometimes, but this is pretty obscure IMO.  
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
-# 2. An additional limitation is that the Options class cannot have option-methods which are the same as any OptionParser methods since these will be forwarded to the OptionParser instance in the Options class.  
-# 3. In 0.9.0 I finally had a clear demarcation between switch arguments and switches themselves being mandatory or optional.  This is way more complicated since the adding of numerous methods and instance variables to Switches to accommodate this distiction.  
-# 4. Not that happy with apparently using exclaiming methods in the definition block and then stripping the '!' from the method name before being supplied to OpenStruct.  What to do?...  (Moved the '!' to the method(s) on Switches instead as of 0.9.1.)  
-# 5. It mostly makes sense that the Switches interface methods now hold the '!', since it is modifying that switch in place with a required argument, rather than relying upon a default or otherwise set value elsewhere and presumably later than when the switch was set.  
+# 2. An additional limitation is that the Switches class cannot have methods which are the same as any OptionParser methods since these will be forwarded to the OptionParser instance, @op.  
+# 3. In 0.9.0 there is finally now a clear demarcation between switch arguments and switches themselves being mandatory or optional.  
+# 4. It mostly makes sense that the Switches interface methods are bang methods, since it is modifying that switch in place with a required argument, rather than relying upon a default or otherwise set value elsewhere and presumably later than when the switch was set.  
 
 # Dependencies: 
 # 1. Standard Ruby Library
@@ -50,18 +49,23 @@
 # 22. ~ Switches#do_set + ...options.  
 # 23. ~ Switches#on_args + ...options[:cast].  
 # 24. ~ self-run section to do a simple test of casting.  
-# 2/3
+# 2/3 (Renaming the library file.)
 # 25. /Options.rb/Switches.rb/.  
-# 3/4
+# 3/4 (+ casting interface methods)
 # 26. + CastingInterfaceMethods#integer(!).  
 # 27. + CastingInterfaceMethods#float(!).  
 # 28. + CastingInterfaceMethods#array(!).  
 # 29. + CastingInterfaceMethods#regex(p)(!).  
 # 30. + CastingInterfaceMethods#boolean(!).  
 # 31. ~ Switches#initialize + include_casting_interface_methods.  
-# 32. /String#short_arg?/String#short_switch/.  
-# 33. /String#long_arg?/String#long_switch/.  
+# 32. /String#short_arg?/String#short_switch?/.  
+# 33. /String#long_arg?/String#long_switch?/.  
 # 34. ~ Switches#on_args - boolean_switch.  
+# 4/5 (Added default values for switches.)
+# 35. ~ CastingInterfaceMethods to extract any options before pushing a cast option, since it was overwriting for those casting interface methods.  
+# 36. ~ Switches#initialize, + @defaults.  
+# 37. /Switches#set_unused_switches_to_nil/Switches#set_unused_switches/.  
+# 38. ~ Switches#set_unused_switches, so as it handles setting unused switches with a default.  
 
 require 'ostruct'
 require 'optparse'
@@ -110,43 +114,43 @@ module CastingInterfaceMethods
   
   # It doesn't make sense to cast a non-compulsory switch argument, but this is only so as to avoid errors if that behaviour is desired.  
   def integer(*attrs, &block)
-    attrs << {:cast => Integer}
+    attrs << attrs.extract_options!.merge({:cast => Integer})
     set(*attrs, &block)
   end
   
   def integer!(*attrs, &block)
-    attrs << {:cast => Integer}
+    attrs << attrs.extract_options!.merge({:cast => Integer})
     set!(*attrs, &block)
   end
   
   def float(*attrs, &block)
-    attrs << {:cast => Float}
+    attrs << attrs.extract_options!.merge({:cast => Float})
     set(*attrs, &block)
   end
   
   def float!(*attrs, &block)
-    attrs << {:cast => Float}
+    attrs << attrs.extract_options!.merge({:cast => Float})
     set!(*attrs, &block)
   end
   
   def array(*attrs, &block)
-    attrs << {:cast => Array}
+    attrs << attrs.extract_options!.merge({:cast => Array})
     set(*attrs, &block)
   end
   
   def array!(*attrs, &block)
-    attrs << {:cast => Array}
+    attrs << attrs.extract_options!.merge({:cast => Array})
     set!(*attrs, &block)
   end
   
   def regexp(*attrs, &block)
-    attrs << {:cast => Regexp}
+    attrs << attrs.extract_options!.merge({:cast => Regexp})
     set(*attrs, &block)
   end
   alias_method :regex, :regexp
   
   def regexp!(*attrs, &block)
-    attrs << {:cast => Regexp}
+    attrs << attrs.extract_options!.merge({:cast => Regexp})
     set!(*attrs, &block)
   end
   alias_method :regex!, :regexp!
@@ -168,6 +172,7 @@ class Switches
     @op = OptionParser.new
     @required_switches = []
     @all_switches = []
+    @defaults = {}
     if block_given?
       yield self
       parse!
@@ -205,7 +210,7 @@ class Switches
   def parse!
     @op.parse!
     check_required_switches
-    set_unused_switches_to_nil
+    set_unused_switches
   end
   
   def supplied_switches
@@ -235,6 +240,7 @@ class Switches
   def on_args(requires_argument, options, *attrs, &block)
     on_args = []
     attrs.collect{|e| e.to_s}.each do |attr|
+      @defaults[attr] = options[:default] if options[:default]
       on_args << "-#{attr.long_switch? ? '-' : ''}#{attr.to_s.delete('?')}"
     end
     if requires_argument
@@ -256,8 +262,11 @@ class Switches
     end
   end
   
-  def set_unused_switches_to_nil
-    (@all_switches - supplied_switches).each{|s| @settings.send(s + '=', nil)}
+  def set_unused_switches
+    default_switches = @defaults.keys.collect{|default| default.to_s}
+    default_switches.each{|switch| @settings.send(switch + '=', @defaults[switch])}
+    unused_switches = @all_switches - supplied_switches - default_switches
+    unused_switches.each{|s| @settings.send(s + '=', nil)}
   end
   
 end
@@ -275,7 +284,7 @@ if __FILE__ == $0
     s.optional(:d?, :del?, :delete?){'Optionally delete after action?'}
     s.optional!(:p, :port, :port_number, :cast => Integer){'Otherwise use the default port and cast ye spell and turn it into an integer.'}
     s.optional!(:t, :temp, :temperature, :cast => Float){'Temperature will be cast as a float.'}
-    s.integer(:i, :int){'Cast me as an int.'}
+    s.integer(:i, :int, :default => 31){'Cast me as an int with a default value of 31.'}
     s.boolean(:yes_or_no){'This seems like a step backwards by comparison with ?-methods...'}
   end
   pp switches.filename
