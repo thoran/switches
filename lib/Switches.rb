@@ -1,12 +1,13 @@
 # Switches
 
 # 20091223
-# 0.9.5
+# 0.9.6
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
+# 2. Reinstitute some specs.  
 
 # Ideas: 
 # 1. Use ! for options with required switches?  Done as of 0.6.0.  (Changed to being for required arguments in 0.9.0 however.)
@@ -66,6 +67,12 @@
 # 36. ~ Switches#initialize, + @defaults.  
 # 37. /Switches#set_unused_switches_to_nil/Switches#set_unused_switches/.  
 # 38. ~ Switches#set_unused_switches, so as it handles setting unused switches with a default.  
+# 5/6 (Setting of defaults was overriding supplied switch values.)
+# 39. ~ Switches#set_unused_switches, to make use of #switch_defaults and #unused_switches.  
+# 40. + Switches#switch_defaults, as an interface method since it might be useful for querying at some point?  
+# 41. + Switches#unused_switches, also as an interface method since it might also be useful for querying at some point?  
+# 42. ~ Switches#on_args, so as to enable alternate hash keys (:type and :class) for type casting.  
+# 43. ~ self-run section to reflect the optionalness/optionality(?) of summaries.  
 
 require 'ostruct'
 require 'optparse'
@@ -217,6 +224,14 @@ class Switches
     @settings.instance_variable_get(:@table).keys.collect{|s| s.to_s}
   end
   
+  def switch_defaults
+    @defaults.keys.collect{|default| default.to_s}
+  end
+  
+  def unused_switches
+    @all_switches - supplied_switches - switch_defaults
+  end
+  
   private
   
   def do_set(requires_argument, *attrs, &block)
@@ -250,7 +265,13 @@ class Switches
     else
       on_args << (on_args.pop + ' [OPTIONAL_ARGUMENT]')
     end
-    on_args << options[:cast] if options[:cast]
+    if options[:cast]
+      on_args << options[:cast]
+    elsif options[:type]
+      on_args << options[:type]
+    elsif options[:class]
+      on_args << options[:class]
+    end
     on_args << yield if block
     on_args
   end
@@ -263,10 +284,8 @@ class Switches
   end
   
   def set_unused_switches
-    default_switches = @defaults.keys.collect{|default| default.to_s}
-    default_switches.each{|switch| @settings.send(switch + '=', @defaults[switch])}
-    unused_switches = @all_switches - supplied_switches - default_switches
     unused_switches.each{|s| @settings.send(s + '=', nil)}
+    switch_defaults.each{|switch| @settings.send(switch + '=', @defaults[switch]) if @settings.send(switch).nil?}
   end
   
 end
@@ -275,6 +294,7 @@ if __FILE__ == $0
   require 'pp'
   switches = Switches.new do |s|
     s.banner = 'Here is a banner.'
+    s.set(:z, :zip, :zippy) # Option summaries are optional.  
     s.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
     s.set!(:h, :host, :hostname){'The hostname switch is optional, but has a mandatory argument if used.'}
     s.required(:a, :app, :application){'Necessarily provide an application name, but an argument is optional.'}
@@ -283,7 +303,7 @@ if __FILE__ == $0
     s.required(:r?, :req?, :required?){'Required?'}
     s.optional(:d?, :del?, :delete?){'Optionally delete after action?'}
     s.optional!(:p, :port, :port_number, :cast => Integer){'Otherwise use the default port and cast ye spell and turn it into an integer.'}
-    s.optional!(:t, :temp, :temperature, :cast => Float){'Temperature will be cast as a float.'}
+    s.optional!(:t, :temp, :temperature, :type => Float){'Temperature will have the type Float.'}
     s.integer(:i, :int, :default => 31){'Cast me as an int with a default value of 31.'}
     s.boolean(:yes_or_no){'This seems like a step backwards by comparison with ?-methods...'}
   end
