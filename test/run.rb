@@ -2,6 +2,9 @@
 
 # 20100222
 
+# Changes: 
+# 1. Added #perform and #perform method...  
+
 require File.expand_path(File.dirname(__FILE__) + '/../lib/Switches')
 require 'pp'
 
@@ -25,19 +28,11 @@ switches = Switches.new do |s|
   s.optional!(:t, :temp, :temperature, :type => Float){'Temperature will have the type Float.'}
   s.integer(:i, :int, :default => 31){'Cast me as an int with a default value of 31.'}
   s.boolean(:yes_or_no){'This seems like a step backwards by comparison with ?-methods...'}
+  s.perform(:go){pp 'go'} # This non-bang method does not require a switch value.  
+  s.perform!(:goes){|value| pp value.upcase} # Bang methods do require a switch value, and if not provided the block parameter will be nil and the action will likely fail.  
+  s.perform(:an_action){an_action}
 end
-pp switches.filename
-pp switches.hostname
-pp switches.application
-pp switches.blessing
-pp switches.secure?
-pp switches.required?
-pp switches.delete?
-pp switches.port
-pp switches.degrees
-pp switches.temperature
-pp switches.int
-pp switches.yes_or_no?
-puts
-puts switches.help
+print switches.application == nil ? '.' : 'x'
+print switches.blessing == 'me' ? '.' : 'x'
+print switches.required? == true ? '.' : 'x'
 puts

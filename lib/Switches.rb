@@ -1,7 +1,7 @@
 # Switches
 
-# 20091226
-# 0.9.7
+# 20100113, 20100115
+# 0.9.8
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -11,7 +11,7 @@
 
 # Ideas: 
 # 1. Use ! for options with required switches?  Done as of 0.6.0.  (Changed to being for required arguments in 0.9.0 however.)
-# 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  OK, maybe sometimes, but this is pretty obscure IMO.  
+# 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  OK, maybe sometimes, but this is pretty obscure IMO.  OK, bad idea.  These can be used as action oriented sub-commands.  
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
@@ -73,11 +73,16 @@
 # 41. + Switches#unused_switches, also as an interface method since it might also be useful for querying at some point?  
 # 42. ~ Switches#on_args, so as to enable alternate hash keys (:type and :class) for type casting.  
 # 43. ~ self-run section to reflect the optionalness/optionality(?) of summaries.  
-# 6/7
-# 44. ~ Switches#on_args, shorter, but...  
+# 6/7 (Some small tidyups and removal of self-run section)
+# 44. ~ Switches#on_args, shorter when handling casting arguments.  
 # 45. /unused_switches/unset_switches/.  
 # 46. ~ Switches#check_required_switches, so that the message is not being assigned until a switch is missing.  
 # 47. Removed the self-run section and moved it to ./test/run.rb.  
+# 7/8 (Addition of #perform and #perform! methods, as well the #do_action method and changes to #on_args to facilitate #perform* methods.)
+# 48. ~ Switches#on_args, so as if a block is supplied which is not returning a String, then it will not be placed into the on_args argument list.  
+# 49. + Switches#perform, interface for actions which don't require an argument.  
+# 50. + Switches#perform!, interface for actions which do require an argument.  
+# 51. + Switches#do_action, executes a block when called by either of #perform or #perform!.  
 
 require 'ostruct'
 require 'optparse'
@@ -124,7 +129,6 @@ end
 
 module CastingInterfaceMethods
   
-  # It doesn't make sense to cast a non-compulsory switch argument, but this is only so as to avoid errors if that behaviour is desired.  
   def integer(*attrs, &block)
     attrs << attrs.extract_options!.merge({:cast => Integer})
     set(*attrs, &block)
@@ -219,10 +223,18 @@ class Switches
   alias_method :necessary!, :required!
   alias_method :compulsory!, :required!
   
+  def perform(*attrs, &block)
+    do_action(false, *attrs, &block)
+  end
+  
+  def perform!(*attrs, &block)
+    do_action(true, *attrs, &block)
+  end
+  
   def parse!
     @op.parse!
     check_required_switches
-    set_unused_switches
+    set_unset_switches
   end
   
   def supplied_switches
@@ -249,6 +261,14 @@ class Switches
     end
   end
   
+  def do_action(requires_argument, *attrs, &block)
+    options = attrs.extract_options!
+    @all_switches = @all_switches + attrs.collect{|a| a.to_s}
+    @op.on(*on_args(requires_argument, options, *attrs)) do |o|
+      yield o if block
+    end
+  end
+  
   def method_missing(method_name, *args, &block)
     if (@op.methods - Switches.instance_methods).include?(method_name.to_s)
       @op.send(method_name.to_s, *args, &block)
@@ -271,7 +291,10 @@ class Switches
       on_args << (on_args.pop + ' [OPTIONAL_ARGUMENT]')
     end
     on_args << (options[:cast] || options[:type] || options[:class]) if (options[:cast] || options[:type] || options[:class])
-    on_args << yield if block
+    if block
+      yield_result = yield
+      on_args << yield_result if yield_result.class == String
+    end
     on_args
   end
   
@@ -285,7 +308,7 @@ class Switches
   end
   
   def set_unset_switches
-    unused_switches.each{|switch| @settings.send(switch + '=', nil)}
+    unset_switches.each{|switch| @settings.send(switch + '=', nil)}
     switch_defaults.each{|switch| @settings.send(switch + '=', @defaults[switch]) if @settings.send(switch).nil?}
   end
   
