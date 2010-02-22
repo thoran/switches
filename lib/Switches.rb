@@ -1,7 +1,7 @@
 # Switches
 
-# 20091223
-# 0.9.6
+# 20091226
+# 0.9.7
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -23,7 +23,7 @@
 # 1. Standard Ruby Library
 
 # Changes since: 0.8:
-# (Renamed this project/class from Options to Switches.)
+# (Renamed this project/class from Options to Switches since there are required switches now and required options don't make sense.)
 # 1. /Options/Switches/.  
 # 2. /RequiredOptionMissing/RequiredSwitchMissing/.  
 # 3. /String#boolean_arg?/String#boolean_switch?/.  
@@ -73,6 +73,11 @@
 # 41. + Switches#unused_switches, also as an interface method since it might also be useful for querying at some point?  
 # 42. ~ Switches#on_args, so as to enable alternate hash keys (:type and :class) for type casting.  
 # 43. ~ self-run section to reflect the optionalness/optionality(?) of summaries.  
+# 6/7
+# 44. ~ Switches#on_args, shorter, but...  
+# 45. /unused_switches/unset_switches/.  
+# 46. ~ Switches#check_required_switches, so that the message is not being assigned until a switch is missing.  
+# 47. Removed the self-run section and moved it to ./test/run.rb.  
 
 require 'ostruct'
 require 'optparse'
@@ -228,7 +233,7 @@ class Switches
     @defaults.keys.collect{|default| default.to_s}
   end
   
-  def unused_switches
+  def unset_switches
     @all_switches - supplied_switches - switch_defaults
   end
   
@@ -265,61 +270,23 @@ class Switches
     else
       on_args << (on_args.pop + ' [OPTIONAL_ARGUMENT]')
     end
-    if options[:cast]
-      on_args << options[:cast]
-    elsif options[:type]
-      on_args << options[:type]
-    elsif options[:class]
-      on_args << options[:class]
-    end
+    on_args << (options[:cast] || options[:type] || options[:class]) if (options[:cast] || options[:type] || options[:class])
     on_args << yield if block
     on_args
   end
   
   def check_required_switches
     @required_switches.each do |required_switch|
-      message = "required switch, -#{required_switch.long_switch? ? '-' : ''}#{required_switch.to_s.delete('?')}, is missing"
-      raise(RequiredSwitchMissing, message) unless supplied_switches.include?(required_switch)
+      unless supplied_switches.include?(required_switch)
+        message = "required switch, -#{required_switch.long_switch? ? '-' : ''}#{required_switch.to_s.delete('?')}, is missing"
+        raise RequiredSwitchMissing, message
+      end
     end
   end
   
-  def set_unused_switches
-    unused_switches.each{|s| @settings.send(s + '=', nil)}
+  def set_unset_switches
+    unused_switches.each{|switch| @settings.send(switch + '=', nil)}
     switch_defaults.each{|switch| @settings.send(switch + '=', @defaults[switch]) if @settings.send(switch).nil?}
   end
   
-end
-
-if __FILE__ == $0
-  require 'pp'
-  switches = Switches.new do |s|
-    s.banner = 'Here is a banner.'
-    s.set(:z, :zip, :zippy) # Option summaries are optional.  
-    s.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
-    s.set!(:h, :host, :hostname){'The hostname switch is optional, but has a mandatory argument if used.'}
-    s.required(:a, :app, :application){'Necessarily provide an application name, but an argument is optional.'}
-    s.required!(:bless, :blessing){'Blessings are always necessary, yet they will always cause an argument!'}
-    s.set(:s?, :sec?, :secure?){'Optionally use a secure connection.'}
-    s.required(:r?, :req?, :required?){'Required?'}
-    s.optional(:d?, :del?, :delete?){'Optionally delete after action?'}
-    s.optional!(:p, :port, :port_number, :cast => Integer){'Otherwise use the default port and cast ye spell and turn it into an integer.'}
-    s.optional!(:t, :temp, :temperature, :type => Float){'Temperature will have the type Float.'}
-    s.integer(:i, :int, :default => 31){'Cast me as an int with a default value of 31.'}
-    s.boolean(:yes_or_no){'This seems like a step backwards by comparison with ?-methods...'}
-  end
-  pp switches.filename
-  pp switches.hostname
-  pp switches.application
-  pp switches.blessing
-  pp switches.secure?
-  pp switches.required?
-  pp switches.delete?
-  pp switches.port
-  pp switches.degrees
-  pp switches.temperature
-  pp switches.int
-  pp switches.yes_or_no?
-  puts
-  puts switches.help
-  puts
 end
