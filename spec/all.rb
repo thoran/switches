@@ -60,7 +60,7 @@ describe Switches do
       setup('--port 22').port.should == '22'
     end
     
-    it "shouldn't matter which order the short and long switches are given" do
+    it "shouldn't matter in which order the short and long switches are given" do
       setup('-h example.com').h.should == 'example.com'
       setup('--host example.com').h.should == 'example.com'
     end
@@ -73,7 +73,7 @@ describe Switches do
       ARGV.empty!
       switches_string.split.each{|a| ARGV << a}
       Switches.new do |s|
-        s.set :p, :port
+        s.set! :p, :port
       end
     end
     

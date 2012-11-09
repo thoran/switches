@@ -1,17 +1,19 @@
+# Switches.rb
 # Switches
 
-# 20100113, 20100115
-# 0.9.8
+# 20100222, 27, 0301, 02, 05, 16, 20120124, 1109
+# 0.9.9
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
 # Todo:
 # 1. Clean up #set.  Done as of 0.4.0.  
-# 2. Reinstitute some specs.  
+# 2. Reinstitute some specs.  Done as of 0.9.8.  
 
 # Ideas: 
 # 1. Use ! for options with required switches?  Done as of 0.6.0.  (Changed to being for required arguments in 0.9.0 however.)
 # 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  OK, maybe sometimes, but this is pretty obscure IMO.  OK, bad idea.  These can be used as action oriented sub-commands.  
+# 3. Allow for any one of the switches OpenStruct methods to assign values for any of the other associated methods, so as it is more than a read once switch and can be used for storage through out the application; although this might be stepping on Attributes.rb's toes?...  
 
 # Notes: 
 # 1. A limitation is the inability to use the switch, "-?", since there is no Ruby method, #?.  
@@ -22,7 +24,7 @@
 # Dependencies: 
 # 1. Standard Ruby Library
 
-# Changes since: 0.8:
+# Changes since 0.8:
 # (Renamed this project/class from Options to Switches since there are required switches now and required options don't make sense.)
 # 1. /Options/Switches/.  
 # 2. /RequiredOptionMissing/RequiredSwitchMissing/.  
@@ -73,7 +75,7 @@
 # 41. + Switches#unused_switches, also as an interface method since it might also be useful for querying at some point?  
 # 42. ~ Switches#on_args, so as to enable alternate hash keys (:type and :class) for type casting.  
 # 43. ~ self-run section to reflect the optionalness/optionality(?) of summaries.  
-# 6/7 (Some small tidyups and removal of self-run section)
+# 6/7 (Some small tidyups and removal of self-run section.)
 # 44. ~ Switches#on_args, shorter when handling casting arguments.  
 # 45. /unused_switches/unset_switches/.  
 # 46. ~ Switches#check_required_switches, so that the message is not being assigned until a switch is missing.  
@@ -83,6 +85,36 @@
 # 49. + Switches#perform, interface for actions which don't require an argument.  
 # 50. + Switches#perform!, interface for actions which do require an argument.  
 # 51. + Switches#do_action, executes a block when called by either of #perform or #perform!.  
+# 8/9
+# 52. ~ Switches#check_required_switches, so as it now assembles the complete list of missing switches rather than failing on and reporting only the first.  
+# 53. + Switches#required_perform
+# 54. + Switches#required_perform!
+# 55. - OptionParse#soft_parse, since this was never used here, but only in Attributes.  
+# 56. + Object#default_is(et.al.)
+# 57. + NilClass#default_is(et.al.) overrides Object#default_is for the specific case of nil.  
+# 58. /switches_defaults/switches_with_defaults/.  
+# 59. + Array#peek_options.  
+# 60. + Array#poke_options!.  
+# 61. + Array#all_but_last.  
+# 62. + Array#last!.  
+# 63. + Module#alias_methods.  
+# 64. ~ CastingInterfaceMethods, to make use of Array#poke_options.  
+# 65. + CastingInterfaceMethods#flag.  
+# 66. + Switches.as_h (and associated aliased interfaces).  
+# 67. ~ Switches#initialize, arguments are now a splat with the intention of allowing both casting_interface_methods and as_h being specified as a hash supplied to the initialiser.  
+# 68. ~ Switches, to make use of Module#alias_methods.  
+# 69. ~ Switches, to make use of Array#peek_options and Array#poke_options!.  
+# 70. + Switches#required_perform.  
+# 71. + Switches#required_perform!.  
+# 72. + Switches#switches_with_defaults.  
+# 73. + Switches#switches_with_castings.  
+# 74. + Swtiches#to_h.  
+# 75. + Switches#set_if_required_switch.  
+# 76. + Switches#set_switches_with_defaults.  
+# 77. ~ Switches#parse!, + set_switches_with_defaults() and + to_h().  
+# 78. ~ Switches#do_set, + set_if_required_switch().  
+# 79. ~ Switches#do_action, + set_if_required_switch().  
+# 80. ~ Switches#on_args, so as it can handle castings.  
 
 require 'ostruct'
 require 'optparse'
@@ -109,20 +141,50 @@ class Array
     last.is_a?(::Hash) ? pop : {}
   end
   
+  def peek_options
+    last.is_a?(::Hash) ? last : {}
+  end
+  
+  def poke_options!(h)
+    self << self.extract_options!.merge(h)
+  end
+  
+  alias_method :last!, :pop
+  
+  def all_but_last
+    d = self.dup
+    d.last!
+    d
+  end
+  
 end
 
-class OptionParser
+class Object
   
-  def soft_parse
-    argv = default_argv.dup
-    loop do
-      begin
-        parse(argv)
-        return
-      rescue OptionParser::InvalidOption
-        argv.shift
-      end
-    end
+  def default_is(o)
+    self
+  end
+  alias_method :defaults_to, :default_is
+  alias_method :default_to, :default_is
+  alias_method :default, :default_is
+  
+end
+
+class NilClass
+  
+  def default_is(o)
+    o
+  end
+  alias_method :defaults_to, :default_is
+  alias_method :default_to, :default_is
+  alias_method :default, :default_is
+  
+end
+
+class Module
+  
+  def alias_methods(*args)
+    args.all_but_last.each{|e| alias_method e.to_sym, args.last.to_sym}
   end
   
 end
@@ -130,43 +192,43 @@ end
 module CastingInterfaceMethods
   
   def integer(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Integer})
+    attrs.poke_options!({:cast => Integer})
     set(*attrs, &block)
   end
   
   def integer!(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Integer})
+    attrs.poke_options!({:cast => Integer})
     set!(*attrs, &block)
   end
   
   def float(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Float})
+    attrs.poke_options!({:cast => Float})
     set(*attrs, &block)
   end
   
   def float!(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Float})
+    attrs.poke_options!({:cast => Float})
     set!(*attrs, &block)
   end
   
   def array(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Array})
+    attrs.poke_options!({:cast => Array})
     set(*attrs, &block)
   end
   
   def array!(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Array})
+    attrs.poke_options!({:cast => Array})
     set!(*attrs, &block)
   end
   
   def regexp(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Regexp})
+    attrs.poke_options!({:cast => Regexp})
     set(*attrs, &block)
   end
   alias_method :regex, :regexp
   
   def regexp!(*attrs, &block)
-    attrs << attrs.extract_options!.merge({:cast => Regexp})
+    attrs.poke_options!({:cast => Regexp})
     set!(*attrs, &block)
   end
   alias_method :regex!, :regexp!
@@ -175,6 +237,7 @@ module CastingInterfaceMethods
     attrs.collect!{|a| a.to_s =~ /\?$/ ? a : (a.to_s + '?').to_sym}
     set(*attrs, &block)
   end
+  alias_method :flag, :boolean
   
 end
 
@@ -182,13 +245,26 @@ class RequiredSwitchMissing < RuntimeError; end
 
 class Switches
   
-  def initialize(include_casting_interface_methods = true)
-    self.class.send(:include, CastingInterfaceMethods) if include_casting_interface_methods
+  class << self
+    
+    def as_h(*args)
+      switches = new(*args)
+      switches.to_h
+    end
+    alias_methods :to_h, :as_hash, :as_a_hash, :as_h
+    
+  end
+  
+  def initialize(*args)
+    options = args.extract_options!
+    self.class.send(:include, CastingInterfaceMethods) if options[:include_casting_interface_methods].default_is(true)
+    @as_h = (options[:as_h] || options[:to_h] || options[:as_hash] || options[:as_a_hash]).default_is(false)
     @settings = OpenStruct.new
     @op = OptionParser.new
     @required_switches = []
     @all_switches = []
     @defaults = {}
+    @castings = {}
     if block_given?
       yield self
       parse!
@@ -198,60 +274,77 @@ class Switches
   def set(*attrs, &block)
     do_set(false, *attrs, &block)
   end
-  alias_method :optional, :set
-  alias_method :allowed, :set
+  alias_methods :optional_switch, :optional, :set
   
   def set!(*attrs, &block)
     do_set(true, *attrs, &block)
   end
-  alias_method :optional!, :set!
-  alias_method :allowed!, :set!
+  alias_methods :optional_switch!, :optional!, :set!
   
   def required(*attrs, &block)
-    @required_switches = @required_switches + attrs.collect{|a| a.to_s}
+    attrs.poke_options!({:required => true})
     set(*attrs, &block)
   end
-  alias_method :mandatory, :required
-  alias_method :necessary, :required
-  alias_method :compulsory, :required
+  alias_method :required_switch, :required
   
   def required!(*attrs, &block)
-    @required_switches = @required_switches + attrs.collect{|a| a.to_s}
+    attrs.poke_options!({:required => true})
     set!(*attrs, &block)
   end
-  alias_method :mandatory!, :required!
-  alias_method :necessary!, :required!
-  alias_method :compulsory!, :required!
+  alias_method :required_switch!, :required!
   
   def perform(*attrs, &block)
     do_action(false, *attrs, &block)
   end
+  alias_methods :optionally_perform, :optional_perform, :perform
   
   def perform!(*attrs, &block)
     do_action(true, *attrs, &block)
+  end
+  alias_methods :optionally_perform!, :optional_perform!, :perform!
+  
+  def required_perform(*attrs, &block)
+    attrs.poke_options!({:required => true})
+    perform(*attrs, &block)
+  end
+  
+  def required_perform!(*attrs, &block)
+    attrs.poke_options!({:required => true})
+    perform!(*attrs, &block)
   end
   
   def parse!
     @op.parse!
     check_required_switches
+    set_switches_with_defaults
     set_unset_switches
+    to_h if @as_h
   end
   
   def supplied_switches
     @settings.instance_variable_get(:@table).keys.collect{|s| s.to_s}
   end
   
-  def switch_defaults
+  def switches_with_defaults
     @defaults.keys.collect{|default| default.to_s}
   end
   
+  def switches_with_castings
+    @castings.keys.collect{|default| default.to_s}
+  end
+  
   def unset_switches
-    @all_switches - supplied_switches - switch_defaults
+    @all_switches - supplied_switches - switches_with_defaults
+  end
+  
+  def to_h
+    @all_switches.inject({}){|h,e| h[e] = self.send(e) if e; h}
   end
   
   private
   
   def do_set(requires_argument, *attrs, &block)
+    set_if_required_switch(*attrs)
     options = attrs.extract_options!
     @all_switches = @all_switches + attrs.collect{|a| a.to_s}
     @op.on(*on_args(requires_argument, options, *attrs, &block)) do |o|
@@ -262,6 +355,10 @@ class Switches
   end
   
   def do_action(requires_argument, *attrs, &block)
+    attrs.each do |attr|
+      @settings.send(attr.to_s + '=', nil) # Needs to be set prior to checking for required switches, since that check relies upon the key having been set in @settings.  
+    end
+    set_if_required_switch(*attrs)
     options = attrs.extract_options!
     @all_switches = @all_switches + attrs.collect{|a| a.to_s}
     @op.on(*on_args(requires_argument, options, *attrs)) do |o|
@@ -281,6 +378,7 @@ class Switches
     on_args = []
     attrs.collect{|e| e.to_s}.each do |attr|
       @defaults[attr] = options[:default] if options[:default]
+      @castings[attr] = (options[:cast] || options[:type] || options[:class]) if (options[:cast] || options[:type] || options[:class])
       on_args << "-#{attr.long_switch? ? '-' : ''}#{attr.to_s.delete('?')}"
     end
     if requires_argument
@@ -299,17 +397,44 @@ class Switches
   end
   
   def check_required_switches
+    messages = []
     @required_switches.each do |required_switch|
       unless supplied_switches.include?(required_switch)
-        message = "required switch, -#{required_switch.long_switch? ? '-' : ''}#{required_switch.to_s.delete('?')}, is missing"
-        raise RequiredSwitchMissing, message
+        messages << "required switch, -#{required_switch.long_switch? ? '-' : ''}#{required_switch.to_s.delete('?')}, is missing"
+      end
+    end
+    unless messages.empty?
+      raise RequiredSwitchMissing, messages.join("\n")
+    end
+  end
+  
+  def set_switches_with_defaults
+    switches_with_defaults.each do |switch|
+      if switches_with_castings.include?(switch)
+        cast_value = (
+          case @castings[switch]
+          when Integer; @defaults[switch].to_i
+          when Float; @defaults[switch].to_f
+          when Array; @defaults[switch].to_a
+          when Regexp; Regexp.new(@defaults[switch])
+          end
+        )
+        @settings.send(switch + '=', cast_value)
+      else
+        @settings.send(switch + '=', @defaults[switch])
       end
     end
   end
   
   def set_unset_switches
     unset_switches.each{|switch| @settings.send(switch + '=', nil)}
-    switch_defaults.each{|switch| @settings.send(switch + '=', @defaults[switch]) if @settings.send(switch).nil?}
+  end
+  
+  def set_if_required_switch(*attrs)
+    if (attrs.peek_options[:required] || attrs.peek_options[:required_switch])
+      attrs.extract_options!
+      @required_switches = @required_switches + attrs.collect{|a| a.to_s}
+    end
   end
   
 end

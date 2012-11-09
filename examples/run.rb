@@ -21,8 +21,7 @@ def string
   'an action'
 end
 
-#switches = Switches.new(:include_casting_interface_methods => true, :to_h => true) do |s|
-switches = Switches.new(:include_casting_interface_methods => true) do |s|
+switches = Switches.new(:include_casting_interface_methods => true, :to_h => true) do |s|
   s.banner = 'Here is a banner.'
   s.set(:z, :zip, :zippy) # Switch summaries are optional.  
   s.set(:f, :file, :filename){'Optionally provide the name of a file to be read in.'}
@@ -36,7 +35,7 @@ switches = Switches.new(:include_casting_interface_methods => true) do |s|
   s.optional!(:p, :port, :port_number, :cast => Integer){'Otherwise use the default port and cast ye spell and turn it into an integer.'}
   s.optional!(:t, :temp, :temperature, :type => Float){'Temperature will have the type Float.'}
   s.set(:blah, :default => 'blah')
-  s.integer(:i, :int, :default => 5){'Cast me as an int with a default value of 5.'}
+  s.integer(:i, :int, :default => 31){'Cast me as an int with a default value of 31.'}
   s.integer(:i2, :int2, :default => '31'){'Cast me as an int with a default value of 31.'}
   s.boolean(:yes_or_no){'This seems like a step backwards by comparison with ?-methods...'}
   s.perform(:go){pp 'go'} # This non-bang method does not require a switch value.  
@@ -54,8 +53,8 @@ print switches.blah == 'blah' ? '.' : 'x'
 pp switches.int
 print switches.int == 5 ? '.' : 'x'
 
-# pp switches.int2
-# print switches.int2 == 31 ? '.' : 'x'
+pp switches.int2
+print switches.int2 == 31 ? '.' : 'x'
 
 # puts switches.help
 # 
