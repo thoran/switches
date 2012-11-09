@@ -1,8 +1,8 @@
 # Switches.rb
 # Switches
 
-# 20100222, 27, 0301, 02, 05, 16, 20120124, 1109
-# 0.9.9
+# 20121109
+# 0.9.10
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -22,7 +22,7 @@
 # 4. It mostly makes sense that the Switches interface methods are bang methods, since it is modifying that switch in place with a required argument, rather than relying upon a default or otherwise set value elsewhere and presumably later than when the switch was set.  
 
 # Dependencies: 
-# 1. Standard Ruby Library
+# 1. Standard Ruby Library.  
 
 # Changes since 0.8:
 # (Renamed this project/class from Options to Switches since there are required switches now and required options don't make sense.)
@@ -115,9 +115,20 @@
 # 78. ~ Switches#do_set, + set_if_required_switch().  
 # 79. ~ Switches#do_action, + set_if_required_switch().  
 # 80. ~ Switches#on_args, so as it can handle castings.  
+# 9/10
+# 81. + OpenStruct#to_h.  
+# 82. ~ Switches#to_h.  
 
-require 'ostruct'
 require 'optparse'
+require 'ostruct'
+
+class OpenStruct
+  
+  def to_h
+    @table
+  end
+  
+end
 
 class String
   
@@ -338,7 +349,7 @@ class Switches
   end
   
   def to_h
-    @all_switches.inject({}){|h,e| h[e] = self.send(e) if e; h}
+    @settings.to_h
   end
   
   private
