@@ -2,7 +2,7 @@
 # Switches
 
 # 20121109
-# 0.9.10
+# 0.9.11
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -118,6 +118,8 @@
 # 9/10
 # 81. + OpenStruct#to_h.  
 # 82. ~ Switches#to_h.  
+# 10/11 (Whoops!  The defaults were overwriting the supplied settings.)
+# 83. ~ Switches#set_switches_with_defaults to check if a setting had been set before applying a default value.  
 
 require 'optparse'
 require 'ostruct'
@@ -421,18 +423,20 @@ class Switches
   
   def set_switches_with_defaults
     switches_with_defaults.each do |switch|
-      if switches_with_castings.include?(switch)
-        cast_value = (
-          case @castings[switch]
-          when Integer; @defaults[switch].to_i
-          when Float; @defaults[switch].to_f
-          when Array; @defaults[switch].to_a
-          when Regexp; Regexp.new(@defaults[switch])
-          end
-        )
-        @settings.send(switch + '=', cast_value)
-      else
-        @settings.send(switch + '=', @defaults[switch])
+      if @settings.instance_variable_get(:@table)[switch.to_sym].nil?
+        if switches_with_castings.include?(switch)
+          cast_value = (
+            case @castings[switch]
+            when Integer; @defaults[switch].to_i
+            when Float; @defaults[switch].to_f
+            when Array; @defaults[switch].to_a
+            when Regexp; Regexp.new(@defaults[switch])
+            end
+          )
+          @settings.send(switch + '=', cast_value)
+        else
+          @settings.send(switch + '=', @defaults[switch])
+        end
       end
     end
   end
