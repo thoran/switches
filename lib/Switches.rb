@@ -1,8 +1,8 @@
 # Switches.rb
 # Switches
 
-# 20130125, 0513
-# 0.9.12
+# 20130513
+# 0.9.13
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -119,10 +119,14 @@
 # 81. + OpenStruct#to_h.  
 # 82. ~ Switches#to_h.  
 # 10/11 (Whoops!  The defaults were overwriting the supplied settings.)
-# 83. ~ Switches#set_switches_with_defaults to check if a setting had been set before applying a default value.   
+# 83. ~ Switches#set_switches_with_defaults to check if a setting had been set before applying a default value.  
+# 10/11
+# 84. 
 # 11/12 (Removed default aliases for default_to, since it clashes with the mail gem's Mail::Message#default method.)
-# 84. - Object#default.  
-# 85. - NilClass#default.  
+# 85. - Object#default.  
+# 86. - NilClass#default.  
+# 12/13
+# 87. Swapped out a couple of @settings.instance_variable_get(:@table)'s for OpenStruct#to_h's.  
 
 require 'optparse'
 require 'ostruct'
@@ -268,7 +272,9 @@ class Switches
     alias_methods :to_h, :as_hash, :as_a_hash, :as_h
     
   end
-  
+
+  attr_accessor :settings
+
   def initialize(*args)
     options = args.extract_options!
     self.class.send(:include, CastingInterfaceMethods) if options[:include_casting_interface_methods].default_is(true)
@@ -336,7 +342,7 @@ class Switches
   end
   
   def supplied_switches
-    @settings.instance_variable_get(:@table).keys.collect{|s| s.to_s}
+    @settings.to_h.keys.collect{|s| s.to_s}
   end
   
   def switches_with_defaults
@@ -424,7 +430,7 @@ class Switches
   
   def set_switches_with_defaults
     switches_with_defaults.each do |switch|
-      if @settings.instance_variable_get(:@table)[switch.to_sym].nil?
+      if @settings.to_h[switch.to_sym].nil?
         if switches_with_castings.include?(switch)
           cast_value = (
             case @castings[switch]
