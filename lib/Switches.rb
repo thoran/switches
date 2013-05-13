@@ -1,8 +1,8 @@
 # Switches.rb
 # Switches
 
-# 20121109
-# 0.9.11
+# 20130125, 0513
+# 0.9.12
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -119,7 +119,10 @@
 # 81. + OpenStruct#to_h.  
 # 82. ~ Switches#to_h.  
 # 10/11 (Whoops!  The defaults were overwriting the supplied settings.)
-# 83. ~ Switches#set_switches_with_defaults to check if a setting had been set before applying a default value.  
+# 83. ~ Switches#set_switches_with_defaults to check if a setting had been set before applying a default value.   
+# 11/12 (Removed default aliases for default_to, since it clashes with the mail gem's Mail::Message#default method.)
+# 84. - Object#default.  
+# 85. - NilClass#default.  
 
 require 'optparse'
 require 'ostruct'
@@ -179,7 +182,6 @@ class Object
   end
   alias_method :defaults_to, :default_is
   alias_method :default_to, :default_is
-  alias_method :default, :default_is
   
 end
 
@@ -190,7 +192,6 @@ class NilClass
   end
   alias_method :defaults_to, :default_is
   alias_method :default_to, :default_is
-  alias_method :default, :default_is
   
 end
 
