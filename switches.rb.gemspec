@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
   s.name = 'switches.rb' # I would have preferred 'switches', but there's a gem with the name of switches.
 
-  s.version = '0.9.14'
-  s.date = '2018-03-29'
+  s.version = '0.9.15'
+  s.date = '2018-04-03'
 
   s.summary = "The easiest way to provide switches to a Ruby program."
   s.description = "Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied."
@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
 
   s.files = [
     'README.md',
-    'switches.gemspec',
+    'switches.rb.gemspec',
     Dir['lib/**/*.rb'],
     Dir['spec/**/*.rb']
   ].flatten
