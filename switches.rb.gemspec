@@ -1,5 +1,6 @@
 Gem::Specification.new do |s|
-  s.name = 'switches'
+  s.name = 'switches.rb' # I would have preferred 'switches', but there's a gem with the name of switches.
+
   s.version = '0.9.14'
   s.date = '2018-03-29'
 

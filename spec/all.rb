@@ -179,7 +179,7 @@ describe Switches do
       switches.should{raise RequiredSwitchMissing}
     end
     
-  end # describe "#required"
+  end # describe "#required!"
   
   describe "#perform" do
     
@@ -217,6 +217,6 @@ describe Switches do
     
     it "should require a block parameter"
     
-  end # describe "#required!"
+  end # describe "#perform!"
   
 end # describe Switches
