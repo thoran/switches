@@ -1,8 +1,8 @@
 # Switches.rb
 # Switches
 
-# 20130513
-# 0.9.13
+# 20180329
+# 0.9.14
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
