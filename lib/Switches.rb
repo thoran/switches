@@ -1,8 +1,8 @@
 # Switches.rb
 # Switches
 
-# 20180329
-# 0.9.14
+# 20180403
+# 0.9.15
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -127,6 +127,15 @@
 # 86. - NilClass#default.  
 # 12/13
 # 87. Swapped out a couple of @settings.instance_variable_get(:@table)'s for OpenStruct#to_h's.  
+# 13/14
+# 88. README is now markdown.
+# 89. - examples directory
+# 90. Version number bump to 0.9.14.
+# 91. Turned into a gem (+ switches.gemspec).
+# 14/15
+# 92. switches gem name taken, so renamed the gem to switches.rb.
+# 93. Version number bump to 0.9.15.
+# 94. Tidied some comments in spec/all.rb.
 
 require 'optparse'
 require 'ostruct'
