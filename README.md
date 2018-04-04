@@ -8,7 +8,7 @@ Switches provides for a nice wrapper to OptionParser to also act as a store for 
 
 Add this line to your application's Gemfile:
 
-	gem 'switches'
+	gem 'switches.rb'
 
 And then execute:
 
