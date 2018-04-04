@@ -162,7 +162,7 @@ switches = Switches.new do |s|
 switches.perform(:a){puts 'a'}
 switches.parse! # => a
 
-# With an action uses the argument
+# With an action which uses an argument
 switches = Switches.new do |s|
 switches.perform(:a){|block_arg| puts block_arg.upcase}
 switches.parse! # => A
