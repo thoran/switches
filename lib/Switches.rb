@@ -2,7 +2,7 @@
 # Switches
 
 # 20180403
-# 0.9.15
+# 0.9.16
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -136,6 +136,8 @@
 # 92. switches gem name taken, so renamed the gem to switches.rb.
 # 93. Version number bump to 0.9.15.
 # 94. Tidied some comments in spec/all.rb.
+# 15/16
+# 95. + Gemfile
 
 require 'optparse'
 require 'ostruct'
