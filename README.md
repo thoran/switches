@@ -24,7 +24,6 @@ Or install it yourself as:
 ```Ruby
 
 # With optional switch
-
 switches = Switches.new do |s|
   s.set(:a)
   # OR
@@ -33,7 +32,6 @@ end
 switches.a
 
 # With argument required
-
 switches = Switches.new do |s|
   s.set!(:a)
   # OR
@@ -42,7 +40,6 @@ end
 switches.a
 
 # With switch required
-
 switches = Switches.new do |s|
   s.set(:a, required: true)
   # OR
@@ -51,7 +48,6 @@ end
 switches.a
 
 # With switch and argument required
-
 switches = Switches.new do |s|
   s.set!(:a, required: true)
   # OR
@@ -60,7 +56,6 @@ end
 switches.a
 
 # With boolean switch
-
 switches = Switches.new do |s|
   s.set(:a?)
   # OR
@@ -69,14 +64,12 @@ end
 switches.a?
 
 # With a default value
-
 switches = Switches.new do |s|
   s.set(:a, default: 31)
 end
 switches.a # => 31
 
 # With switch cast to an integer
-
 switches = Switches.new(include_casting_interface_methods: true) do |s|
   s.set(:a, cast: Integer)
   # OR
@@ -89,7 +82,6 @@ end
 switches.a.class # => Integer
 
 # With switch cast to a float
-
 switches = Switches.new(include_casting_interface_methods: true) do |s|
   s.set(:a, cast: Float)
   # OR
@@ -102,7 +94,6 @@ end
 switches.a.class # => Float
 
 # With switch cast to an array
-
 switches = Switches.new(include_casting_interface_methods: true) do |s|
   s.set(:a, cast: Array)
   # OR
@@ -115,7 +106,6 @@ end
 switches.a.class # => Array
 
 # With switch cast to a regex
-
 switches = Switches.new(include_casting_interface_methods: true) do |s|
   s.set(:a, cast: Regexp)
   # OR
@@ -128,7 +118,6 @@ end
 switches.a.class # => Regexp
 
 # With a default value and cast to an integer
-
 switches = Switches.new(include_casting_interface_methods: true) do |s|
   s.set(:a, default: 31, cast: Integer)
   # OR
@@ -142,19 +131,16 @@ switches.a # => 31 if no argument supplied
 switches.a.class # => Integer
 
 # With a description of the switch
-
 switches = Switches.new do |s|
   s.set(:a){'This is the -a switch.'}
 end
 
 # With a banner
-
 switches = Switches.new do |s|
   s.banner = 'Here is a banner for the switches.'
 end
 
 # Return a hash instead of an object of class Switches
-
 switches = Switches.new(to_h: true) do |s|
   s.set(:a)
 end
@@ -162,31 +148,26 @@ end
 switches = Switches.as_h do |s|
   s.set(:a)
 end
-
 switches[:a]
 switches.class # => Hash
 
 # Without a block
-
 switches = Switches.new
 switches.set(:a)
 switches.parse!
 switches.a
 
 # With an action
-
 switches = Switches.new do |s|
 switches.perform(:a){puts 'a'}
 switches.parse! # => a
 
 # With an action uses the argument
-
 switches = Switches.new do |s|
 switches.perform(:a){|block_arg| puts block_arg.upcase}
 switches.parse! # => A
 
 # With multiple features combined
-
 switches = Switches.new(include_casting_interface_methods: true, to_h: true) do |s|
   s.set(:a, default: 31, cast: Integer){'This is the switch -a.  It has a default of 31.'}
   # OR
