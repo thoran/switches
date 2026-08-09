@@ -1,8 +1,8 @@
 # Switches.rb
 # Switches
 
-# 20180403
-# 0.9.16
+# 20260809
+# 0.10.0
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
@@ -140,7 +140,9 @@
 # 95. + Gemfile
 
 require 'optparse'
-require 'ostruct'
+require 'Kernel/require_gem'
+
+require_gem 'ostruct'
 
 class OpenStruct
   

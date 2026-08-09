@@ -1,0 +1,22 @@
+# CHANGELOG
+
+## 20260809
+
+0.10.0: Restore loading and building under Ruby 4.0, and bring the repo up to standard.
+
+1. ~ lib/Switches.rb: require ostruct through a vendored require_gem (+ lib/Kernel/require_gem.rb, + lib/Thoran/Kernel/RequireGem/require_gem.rb), so it no longer needs ostruct to be a default gem — which it stopped being as of Ruby 4.0 — nor require_gem to be found on RUBYLIB.
+2. ~ switches.rb.gemspec: - has_rdoc=, which RubyGems has removed and which now raises when the gemspec is loaded.
+3. ~ switches.rb.gemspec: + s.license, + s.required_ruby_version (>= 2.7.0), + s.metadata, + rspec as a development dependency, and + Gemfile, LICENSE.txt and CHANGELOG to the file list.
+4. - Gemfile.lock, which a library should not track, and + .gitignore to keep it out.
+5. + LICENSE.txt: the MIT licence.
+6. + CHANGELOG: this file.
+
+## 20180404
+
+0.9.16: Add a Gemfile.
+
+0.9.15: Rename the gem to switches.rb, since the switches name was taken, and tidy the specs.
+
+0.9.14: Turn switches into a gem, convert the README to markdown, and remove the examples directory.
+
+Nothing before 0.9.14 is recorded here: switches began in 2009, and its pre-gem history — the 0.4.0 to 0.9.13 series noted in the source header — carries no reliable per-version dates.
