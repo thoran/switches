@@ -2,6 +2,15 @@
 
 ## 20260809
 
+0.10.1: Get the specs running again, under rspec 3 and rake.
+
+1. ~ spec/all.rb: rspec 3 syntax throughout, in place of the pre-rspec-3 #should ==, so the specs run at all.
+2. ~ spec/all.rb: the six raise expectations were written as switches.should{raise MissingArgument}, which asserts nothing and names a constant which doesn't exist; they now expect OptionParser::MissingArgument and RequiredSwitchMissing for real.
+3. ~ spec/all.rb: + specs for #perform and #perform!, which had been left pending, and - the Array#empty! alias, since ARGV.clear says it without patching Array.
+4. + Rakefile: an rspec task pointed at spec/all.rb, since the specs live in the one file rather than under the default spec/**/*_spec.rb, + a version task, and spec as the default task.
+5. ~ Gemfile: use gemspec rather than restate rspec, and + ostruct, which the bundle must provide for require_gem to find under Ruby 4.0.
+6. ~ switches.rb.gemspec: + rake as a development dependency and + Rakefile to the file list.
+
 0.10.0: Restore loading and building under Ruby 4.0, and bring the repo up to standard.
 
 1. ~ lib/Switches.rb: require ostruct through a vendored require_gem (+ lib/Kernel/require_gem.rb, + lib/Thoran/Kernel/RequireGem/require_gem.rb), so it no longer needs ostruct to be a default gem — which it stopped being as of Ruby 4.0 — nor require_gem to be found on RUBYLIB.

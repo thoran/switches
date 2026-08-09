@@ -1,25 +1,17 @@
-require "#{File.dirname(__FILE__)}/../lib/Switches"
+# spec/all.rb
 
-class Array
-  
-  alias_method :empty!, :clear
-  
-end
+require_relative '../lib/Switches'
 
 describe Switches do
-  
   describe ".new" do
-    
-    it "should return an object of class Switches" do
-      Switches.new.class.should == Switches
+    it "returns an object of class Switches" do
+      expect(Switches.new.class).to eq(Switches)
     end
-    
   end
-  
+
   describe "#set" do
-    
-    def setup(switches_string = '')
-      ARGV.empty!
+    def build(switches_string = '')
+      ARGV.clear
       switches_string.split.each{|a| ARGV << a}
       Switches.new do |s|
         s.set :v?, :verbose?
@@ -27,196 +19,208 @@ describe Switches do
         s.set :host, :h
       end
     end
-    
-    it "should set a short boolean switch or flag to true when supplied with a short switch" do
-      setup('-v').v?.should == true
+
+    it "sets a short boolean switch to true when supplied with a short switch" do
+      expect(build('-v').v?).to eq(true)
     end
-    
-    it "should set a long boolean switch value to true when supplied with a short switch" do
-      setup('-v').verbose?.should == true
+
+    it "sets a long boolean switch to true when supplied with a short switch" do
+      expect(build('-v').verbose?).to eq(true)
     end
-    
-    it "should set a short boolean switch or flag to true when supplied with a long switch" do
-      setup('--verbose').v?.should == true
+
+    it "sets a short boolean switch to true when supplied with a long switch" do
+      expect(build('--verbose').v?).to eq(true)
     end
-    
-    it "should set a long boolean switch or flag to true when supplied with a long switch" do
-      setup('--verbose').verbose?.should == true
+
+    it "sets a long boolean switch to true when supplied with a long switch" do
+      expect(build('--verbose').verbose?).to eq(true)
     end
-    
-    it "should set a short switch value to the value supplied when supplied with a short switch" do
-      setup('-p 22').p.should == '22'
+
+    it "sets a short switch to the value supplied when supplied with a short switch" do
+      expect(build('-p 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the value supplied when supplied with a short switch" do
-      setup('-p 22').port.should == '22'
+
+    it "sets a long switch to the value supplied when supplied with a short switch" do
+      expect(build('-p 22').port).to eq('22')
     end
-    
-    it "should set a short switch value to the value supplied when supplied with a long switch" do
-      setup('--port 22').p.should == '22'
+
+    it "sets a short switch to the value supplied when supplied with a long switch" do
+      expect(build('--port 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the value supplied when supplied with a long switch" do
-      setup('--port 22').port.should == '22'
+
+    it "sets a long switch to the value supplied when supplied with a long switch" do
+      expect(build('--port 22').port).to eq('22')
     end
-    
-    it "shouldn't matter in which order the short and long switches are given" do
-      setup('-h example.com').h.should == 'example.com'
-      setup('--host example.com').h.should == 'example.com'
+
+    it "doesn't matter in which order the short and long switches are given" do
+      expect(build('-h example.com').h).to eq('example.com')
+      expect(build('--host example.com').h).to eq('example.com')
     end
-    
-  end # describe "#set"
-  
+  end
+
   describe "#set!" do
-    
-    def setup(switches_string = '')
-      ARGV.empty!
+    def build(switches_string = '')
+      ARGV.clear
       switches_string.split.each{|a| ARGV << a}
       Switches.new do |s|
         s.set! :p, :port
       end
     end
-    
-    it "should set a short switch value to the argument supplied with a short switch" do
-      setup('-p 22').p.should == '22'
+
+    it "sets a short switch to the argument supplied with a short switch" do
+      expect(build('-p 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the argument supplied with a short switch" do
-      setup('-p 22').port.should == '22'
+
+    it "sets a long switch to the argument supplied with a short switch" do
+      expect(build('-p 22').port).to eq('22')
     end
-    
-    it "should set a short switch value to the argument supplied with a long switch" do
-      setup('--port 22').p.should == '22'
+
+    it "sets a short switch to the argument supplied with a long switch" do
+      expect(build('--port 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the argument supplied with a long switch" do
-      setup('--port 22').port.should == '22'
+
+    it "sets a long switch to the argument supplied with a long switch" do
+      expect(build('--port 22').port).to eq('22')
     end
-    
-    it "should raise a MissingArgument error when no argument is supplied to a short switch" do
-      switches = lambda{setup('-p')}
-      switches.should{raise MissingArgument}
+
+    it "raises OptionParser::MissingArgument when no argument is supplied to a short switch" do
+      expect{build('-p')}.to raise_error(OptionParser::MissingArgument)
     end
-    
-    it "should raise a MissingArgument error when no argument is supplied to a long switch" do
-      switches = lambda{setup('--port')}
-      switches.should{raise MissingArgument}
+
+    it "raises OptionParser::MissingArgument when no argument is supplied to a long switch" do
+      expect{build('--port')}.to raise_error(OptionParser::MissingArgument)
     end
-    
-  end # describe "#set!"
-  
+  end
+
   describe "#required" do
-    
-    def setup(switches_string = '')
-      ARGV.empty!
+    def build(switches_string = '')
+      ARGV.clear
       switches_string.split.each{|a| ARGV << a}
       Switches.new do |s|
         s.required :p, :port
       end
     end
-    
-    it "should set a short switch value to the argument supplied with a short switch" do
-      setup('-p 22').p.should == '22'
+
+    it "sets a short switch to the argument supplied with a short switch" do
+      expect(build('-p 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the argument supplied with a short switch" do
-      setup('-p 22').port.should == '22'
+
+    it "sets a long switch to the argument supplied with a short switch" do
+      expect(build('-p 22').port).to eq('22')
     end
-    
-    it "should set a short switch value to the argument supplied with a long switch" do
-      setup('--port 22').p.should == '22'
+
+    it "sets a short switch to the argument supplied with a long switch" do
+      expect(build('--port 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the argument supplied with a long switch" do
-      setup('--port 22').port.should == '22'
+
+    it "sets a long switch to the argument supplied with a long switch" do
+      expect(build('--port 22').port).to eq('22')
     end
-    
-    it "should raise a RequiredSwitchMissing error no switch is supplied" do
-      switches = lambda{setup}
-      switches.should{raise RequiredSwitchMissing}
+
+    it "raises RequiredSwitchMissing when no switch is supplied" do
+      expect{build}.to raise_error(RequiredSwitchMissing)
     end
-    
-  end # describe "#required"
-  
+
+    it "names every missing switch in the RequiredSwitchMissing message" do
+      expect{build}.to raise_error(RequiredSwitchMissing, /-p.*--port/m)
+    end
+  end
+
   describe "#required!" do
-    
-    def setup(switches_string = '')
-      ARGV.empty!
+    def build(switches_string = '')
+      ARGV.clear
       switches_string.split.each{|a| ARGV << a}
       Switches.new do |s|
         s.required! :p, :port
       end
     end
-    
-    it "should set a short switch value to the argument supplied with a short switch" do
-      setup('-p 22').p.should == '22'
+
+    it "sets a short switch to the argument supplied with a short switch" do
+      expect(build('-p 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the argument supplied with a short switch" do
-      setup('-p 22').port.should == '22'
+
+    it "sets a long switch to the argument supplied with a short switch" do
+      expect(build('-p 22').port).to eq('22')
     end
-    
-    it "should set a short switch value to the argument supplied with a long switch" do
-      setup('--port 22').p.should == '22'
+
+    it "sets a short switch to the argument supplied with a long switch" do
+      expect(build('--port 22').p).to eq('22')
     end
-    
-    it "should set a long switch value to the argument supplied with a long switch" do
-      setup('--port 22').port.should == '22'
+
+    it "sets a long switch to the argument supplied with a long switch" do
+      expect(build('--port 22').port).to eq('22')
     end
-    
-    it "should raise a MissingArgument error when no argument is supplied to a short switch" do
-      switches = lambda{setup('-p')}
-      switches.should{raise MissingArgument}
+
+    it "raises OptionParser::MissingArgument when no argument is supplied to a short switch" do
+      expect{build('-p')}.to raise_error(OptionParser::MissingArgument)
     end
-    
-    it "should raise a MissingArgument error when no argument is supplied to a long switch" do
-      switches = lambda{setup('-p')}
-      switches.should{raise MissingArgument}
+
+    it "raises OptionParser::MissingArgument when no argument is supplied to a long switch" do
+      expect{build('--port')}.to raise_error(OptionParser::MissingArgument)
     end
-    
-    it "should raise a RequiredSwitchMissing error no switch is supplied" do
-      switches = lambda{setup}
-      switches.should{raise RequiredSwitchMissing}
+
+    it "raises RequiredSwitchMissing when no switch is supplied" do
+      expect{build}.to raise_error(RequiredSwitchMissing)
     end
-    
-  end # describe "#required!"
-  
+  end
+
   describe "#perform" do
-    
-    def setup(switches_string = '')
-      ARGV.empty!
+    def build(switches_string = '', &block)
+      ARGV.clear
       switches_string.split.each{|a| ARGV << a}
-      Switches.new do |s|
-        s.perform(:action){an_action}
-      end
+      Switches.new{|s| s.perform(:a, :action, &block)}
     end
-    
-    def an_action
-      'value'
+
+    it "calls the block when supplied with a short switch" do
+      called = false
+      build('-a'){called = true}
+      expect(called).to eq(true)
     end
-    
-    it "should send(:an_action)"
-    
-  end # describe "#perform"
-  
+
+    it "calls the block when supplied with a long switch" do
+      called = false
+      build('--action'){called = true}
+      expect(called).to eq(true)
+    end
+
+    it "doesn't call the block when the switch isn't supplied" do
+      called = false
+      build{called = true}
+      expect(called).to eq(false)
+    end
+
+    it "doesn't require an argument" do
+      expect{build('-a'){}}.not_to raise_error
+    end
+  end
+
   describe "#perform!" do
-    
-    def setup(switches_string = '')
-      ARGV.empty!
+    def build(switches_string = '', &block)
+      ARGV.clear
       switches_string.split.each{|a| ARGV << a}
-      Switches.new do |s|
-        s.perform(:action){an_action}
-      end
+      Switches.new{|s| s.perform!(:a, :action, &block)}
     end
-    
-    def an_action
-      'value'
+
+    it "passes the argument to the block when supplied with a short switch" do
+      argument = nil
+      build('-a value'){|o| argument = o}
+      expect(argument).to eq('value')
     end
-    
-    it "should send(:an_action)"
-    
-    it "should require a block parameter"
-    
-  end # describe "#perform!"
-  
-end # describe Switches
+
+    it "passes the argument to the block when supplied with a long switch" do
+      argument = nil
+      build('--action value'){|o| argument = o}
+      expect(argument).to eq('value')
+    end
+
+    it "doesn't call the block when the switch isn't supplied" do
+      called = false
+      build{called = true}
+      expect(called).to eq(false)
+    end
+
+    it "raises OptionParser::MissingArgument when no argument is supplied" do
+      expect{build('-a'){}}.to raise_error(OptionParser::MissingArgument)
+    end
+  end
+end

@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'switches.rb' # I would have preferred 'switches', but there's a gem with the name of switches.
 
-  s.version = '0.10.0'
+  s.version = '0.10.1'
   s.date = '2026-08-09'
 
   s.summary = "The easiest way to provide switches to a Ruby program."
@@ -12,12 +12,14 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
   s.required_ruby_version = ">= 2.7.0"
 
+  s.add_development_dependency('rake')
   s.add_development_dependency('rspec')
 
   s.files = [
     'CHANGELOG',
     'Gemfile',
     'LICENSE.txt',
+    'Rakefile',
     'README.md',
     'switches.rb.gemspec',
     Dir['lib/**/*.rb'],

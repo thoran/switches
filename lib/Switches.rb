@@ -2,7 +2,7 @@
 # Switches
 
 # 20260809
-# 0.10.0
+# 0.10.1
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
