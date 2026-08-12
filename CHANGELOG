@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 20260812
+
+0.10.2: Recover the in-source change log into the CHANGELOG, and move the Notes to the README.
+
+1. + CHANGELOG: the 0.9.0 to 0.9.13 series, recovered from the "Changes since 0.8:" log that lived in the lib/Switches.rb header. The items are reproduced as written; the versions carry no reliable dates and are left undated.
+2. + README.md: a Notes section, carrying the notes from the lib/Switches.rb header — the unusable "-?" switch, the clash between Switches methods and OptionParser methods, the required/optional demarcation, and the bang interface methods.
+3. - lib/Switches.rb: the "# Changes since 0.8:" log (now in the CHANGELOG) and the "# Notes:" section (now in the README). The rest of the header — Description, Todo, Ideas, Dependencies — stays.
+
+
 ## 20260809
 
 0.10.1: Get the specs running again, under rspec 3 and rake.
@@ -28,4 +37,132 @@
 
 0.9.14: Turn switches into a gem, convert the README to markdown, and remove the examples directory.
 
-Nothing before 0.9.14 is recorded here: switches began in 2009, and its pre-gem history — the 0.4.0 to 0.9.13 series noted in the source header — carries no reliable per-version dates.
+The 0.9.0 to 0.9.13 series below is recovered from the "Changes since 0.8:" log that was kept in the lib/Switches.rb header (removed in 0.10.2); the items are reproduced as they were written there. switches began in 2009 and this pre-gem history carries no reliable per-version dates, so these entries are undated. Nothing before 0.9.0 — the 0.4.0 to 0.8.x Options era — is recorded.
+
+0.9.13: Swap a couple of @settings.instance_variable_get(:@table)'s for OpenStruct#to_h's.
+
+1. Swapped out a couple of @settings.instance_variable_get(:@table)'s for OpenStruct#to_h's.
+
+0.9.12: Remove the default aliases for default_to, which clashed with the mail gem's Mail::Message#default.
+
+1. - Object#default.
+2. - NilClass#default.
+
+0.9.11: Fix the defaults overwriting the supplied settings.
+
+1. ~ Switches#set_switches_with_defaults to check if a setting had been set before applying a default value.
+
+0.9.10: OpenStruct#to_h and Switches#to_h.
+
+1. + OpenStruct#to_h.
+2. ~ Switches#to_h.
+
+0.9.9: A large batch — full missing-switch reporting, required_perform, default_is, and Array/Module helpers.
+
+1. ~ Switches#check_required_switches, so as it now assembles the complete list of missing switches rather than failing on and reporting only the first.
+2. + Switches#required_perform
+3. + Switches#required_perform!
+4. - OptionParse#soft_parse, since this was never used here, but only in Attributes.
+5. + Object#default_is(et.al.)
+6. + NilClass#default_is(et.al.) overrides Object#default_is for the specific case of nil.
+7. /switches_defaults/switches_with_defaults/.
+8. + Array#peek_options.
+9. + Array#poke_options!.
+10. + Array#all_but_last.
+11. + Array#last!.
+12. + Module#alias_methods.
+13. ~ CastingInterfaceMethods, to make use of Array#poke_options.
+14. + CastingInterfaceMethods#flag.
+15. + Switches.as_h (and associated aliased interfaces).
+16. ~ Switches#initialize, arguments are now a splat with the intention of allowing both casting_interface_methods and as_h being specified as a hash supplied to the initialiser.
+17. ~ Switches, to make use of Module#alias_methods.
+18. ~ Switches, to make use of Array#peek_options and Array#poke_options!.
+19. + Switches#required_perform.
+20. + Switches#required_perform!.
+21. + Switches#switches_with_defaults.
+22. + Switches#switches_with_castings.
+23. + Swtiches#to_h.
+24. + Switches#set_if_required_switch.
+25. + Switches#set_switches_with_defaults.
+26. ~ Switches#parse!, + set_switches_with_defaults() and + to_h().
+27. ~ Switches#do_set, + set_if_required_switch().
+28. ~ Switches#do_action, + set_if_required_switch().
+29. ~ Switches#on_args, so as it can handle castings.
+
+0.9.8: Add #perform and #perform!, plus #do_action and the #on_args changes to support them.
+
+1. ~ Switches#on_args, so as if a block is supplied which is not returning a String, then it will not be placed into the on_args argument list.
+2. + Switches#perform, interface for actions which don't require an argument.
+3. + Switches#perform!, interface for actions which do require an argument.
+4. + Switches#do_action, executes a block when called by either of #perform or #perform!.
+
+0.9.7: Some small tidyups and removal of the self-run section.
+
+1. ~ Switches#on_args, shorter when handling casting arguments.
+2. /unused_switches/unset_switches/.
+3. ~ Switches#check_required_switches, so that the message is not being assigned until a switch is missing.
+4. Removed the self-run section and moved it to ./test/run.rb.
+
+0.9.6: Fix the setting of defaults overriding supplied switch values.
+
+1. ~ Switches#set_unused_switches, to make use of #switch_defaults and #unused_switches.
+2. + Switches#switch_defaults, as an interface method since it might be useful for querying at some point?
+3. + Switches#unused_switches, also as an interface method since it might also be useful for querying at some point?
+4. ~ Switches#on_args, so as to enable alternate hash keys (:type and :class) for type casting.
+5. ~ self-run section to reflect the optionalness/optionality(?) of summaries.
+
+0.9.5: Add default values for switches.
+
+1. ~ CastingInterfaceMethods to extract any options before pushing a cast option, since it was overwriting for those casting interface methods.
+2. ~ Switches#initialize, + @defaults.
+3. /Switches#set_unused_switches_to_nil/Switches#set_unused_switches/.
+4. ~ Switches#set_unused_switches, so as it handles setting unused switches with a default.
+
+0.9.4: Add the casting interface methods.
+
+1. + CastingInterfaceMethods#integer(!).
+2. + CastingInterfaceMethods#float(!).
+3. + CastingInterfaceMethods#array(!).
+4. + CastingInterfaceMethods#regex(p)(!).
+5. + CastingInterfaceMethods#boolean(!).
+6. ~ Switches#initialize + include_casting_interface_methods.
+7. /String#short_arg?/String#short_switch?/.
+8. /String#long_arg?/String#long_switch?/.
+9. ~ Switches#on_args - boolean_switch.
+
+0.9.3: Rename the library file.
+
+1. /Options.rb/Switches.rb/.
+
+0.9.2: Add casting to nominated Ruby classes.
+
+1. ~ Switches#on_args + options.
+2. + Array#extract_options!.
+3. + Switches#allowed.
+4. + Switches#allowed!.
+5. + Swithces#mandatory.
+6. + Switches#necessary.
+7. ~ Switches#do_set + ...options.
+8. ~ Switches#on_args + ...options[:cast].
+9. ~ self-run section to do a simple test of casting.
+
+0.9.1: Remove ! from the switch-setting methods and move those to the Switches interface methods.
+
+1. + Switches#do_set.
+2. ~ Switches#set.
+3. + Switches#set!.
+4. + Switches#required!.
+5. - String#required_arg?.
+6. ~ Switches#on_args + requires_argument.
+
+0.9.0: Rename the project from Options to Switches, since there are required switches now and required options don't make sense.
+
+1. /Options/Switches/.
+2. /RequiredOptionMissing/RequiredSwitchMissing/.
+3. /String#boolean_arg?/String#boolean_switch?/.
+4. Other references to options changed to switches.
+5. + Switches#required/mandatory/necessary.
+6. + Swtiches#optional.
+7. + Switches#supplied_switches.
+8. + Switches#set_unused_switches_to_nil.
+9. ~ self-run section to reflect new interface.

@@ -183,6 +183,13 @@ switches.class # => Hash
 
 ```
 
+## Notes
+
+- The switch `-?` can't be used, since there is no Ruby method `#?` for it to map to.
+- A `Switches` instance can't define a method whose name matches an `OptionParser` method, since such calls are forwarded to the underlying `OptionParser` instance.
+- There is a clear demarcation between whether a switch's argument is required and whether the switch itself is required.
+- The bang interface methods (for example `set!` and `required!`) modify the switch in place with a required argument, rather than relying on a default or a value set elsewhere and later.
+
 ## Contributing
 
 1. Fork it ( https://github.com/thoran/HTTP/fork )

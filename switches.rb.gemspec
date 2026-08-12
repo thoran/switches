@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'switches.rb' # I would have preferred 'switches', but there's a gem with the name of switches.
 
-  s.version = '0.10.1'
+  s.version = '0.10.2'
   s.date = '2026-08-09'
 
   s.summary = "The easiest way to provide switches to a Ruby program."
