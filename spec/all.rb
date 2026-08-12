@@ -224,3 +224,44 @@ describe Switches do
     end
   end
 end
+
+describe Switches do
+  describe "VERSION" do
+    it "is a string" do
+      expect(Switches::VERSION).to be_a(String)
+    end
+
+    it "is three numbers separated by dots" do
+      expect(Switches::VERSION).to match(/\A\d+\.\d+\.\d+\z/)
+    end
+
+    it "matches the newest entry in the CHANGELOG" do
+      changelog = File.read(File.expand_path('../CHANGELOG', __dir__))
+      expect(changelog[/^(\d+\.\d+\.\d+):/, 1]).to eq(Switches::VERSION)
+    end
+  end
+end
+
+describe 'switches.rb.gemspec' do
+  let(:spec){Gem::Specification.load(File.expand_path('../switches.rb.gemspec', __dir__))}
+
+  it "is a valid specification" do
+    expect(spec.validate).to eq(true)
+  end
+
+  it "does not pin a date" do
+    expect(spec.date).to eq(Gem::Specification.new.date)
+  end
+
+  it "takes its version from Switches::VERSION" do
+    expect(spec.version.to_s).to eq(Switches::VERSION)
+  end
+
+  it "declares no runtime dependencies" do
+    expect(spec.runtime_dependencies.map(&:name).sort).to eq([])
+  end
+
+  it "declares its development dependencies" do
+    expect(spec.development_dependencies.map(&:name).sort).to eq(%w{rake rspec})
+  end
+end

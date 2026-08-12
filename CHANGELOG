@@ -2,6 +2,13 @@
 
 ## 20260812
 
+0.10.3: Move the version into a constant, and add the standard version and gemspec tests.
+
+1. + lib/Switches/VERSION.rb: Switches::VERSION, required from lib/Switches.rb. The version now lives in a constant the gemspec reads, in place of the '0.10.2' literal it declared.
+2. ~ switches.rb.gemspec: s.version from Switches::VERSION; development_dependencies declared as data — s.development_dependencies = [...], via a setter added in a local Gem::Specification reopening — in place of the add_development_dependency calls; - s.date, which was a stale literal, letting RubyGems' default stand.
+3. + spec/all.rb: the standard version and gemspec specs — VERSION is a string, an anchored X.Y.Z, and matches the newest CHANGELOG entry; the gemspec loads and validates, pins no date, takes its version from Switches::VERSION, declares no runtime dependencies, and declares rake and rspec for development.
+4. - lib/Switches.rb: the "# 20260809 / # 0.10.1" date-and-version stamp in the header, now redundant since VERSION.rb carries the version.
+
 0.10.2: Recover the in-source change log into the CHANGELOG, and move the Notes to the README.
 
 1. + CHANGELOG: the 0.9.0 to 0.9.13 series, recovered from the "Changes since 0.8:" log that lived in the lib/Switches.rb header. The items are reproduced as written; the versions carry no reliable dates and are left undated.
