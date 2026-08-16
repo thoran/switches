@@ -164,6 +164,57 @@ describe Switches do
     end
   end
 
+  describe "OptionParser methods" do
+    def build(&block)
+      ARGV.clear
+      Switches.new(&block)
+    end
+
+    it "forwards a writer to the OptionParser" do
+      expect(build{|s| s.banner = 'Usage: tap-audit [options]'}.help).to match(/\AUsage: tap-audit \[options\]/)
+    end
+
+    it "forwards a method taking an argument to the OptionParser" do
+      expect(build{|s| s.separator 'Options:'}.help).to match(/^Options:$/)
+    end
+
+    it "forwards a reader to the OptionParser" do
+      switches = build{|s| s.program_name = 'tap-audit'}
+      expect(switches.program_name).to eq('tap-audit')
+      expect(switches.help).to match(/\AUsage: tap-audit/)
+    end
+
+    it "prefers a declared switch to the OptionParser method of the same name" do
+      ARGV.clear
+      %w{--version 2.1}.each{|a| ARGV << a}
+      expect(Switches.new{|s| s.set(:version)}.version).to eq('2.1')
+    end
+
+    it "prefers a declared switch when it is written to as well" do
+      switches = build{|s| s.set(:banner)}
+      switches.banner = 'a setting, not the banner'
+      expect(switches.to_h[:banner]).to eq('a setting, not the banner')
+    end
+
+    it "falls through to the settings for a name which is neither" do
+      expect(build{|s| s.set(:port)}.nonesuch).to eq(nil)
+    end
+
+    it "does not forward #to_a, which OptionParser answers with its help" do
+      expect(build{|s| s.set(:port)}.to_a).to eq(nil)
+    end
+
+    it "leaves Array() with the switches rather than the parser's help" do
+      switches = build{|s| s.set(:port)}
+      expect(Array(switches)).to eq([switches])
+    end
+
+    it "leaves the splat with the switches rather than the parser's help" do
+      switches = build{|s| s.set(:port)}
+      expect([*switches]).to eq([switches])
+    end
+  end
+
   describe "multi-word switches" do
     def build(switches_string = '')
       ARGV.clear

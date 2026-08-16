@@ -2,5 +2,5 @@
 # Switches::VERSION
 
 class Switches
-  VERSION = '0.10.5'
+  VERSION = '0.11.0'
 end

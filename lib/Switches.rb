@@ -153,6 +153,9 @@ class RequiredSwitchMissing < RuntimeError; end
 
 class Switches
   
+  # Names Ruby may call implicitly, and which must reach the settings rather than OptionParser.  #to_a would otherwise answer Array() and the splat with the parser's help.
+  NEVER_FORWARDED = [:to_a, :to_ary, :to_h, :to_hash, :to_s, :to_str, :pretty_print]
+  
   class << self
     
     def as_h(*args)
@@ -277,11 +280,23 @@ class Switches
   end
   
   def method_missing(method_name, *args, &block)
-    if (@op.methods - Switches.instance_methods).include?(method_name.to_s)
-      @op.send(method_name.to_s, *args, &block)
+    if option_parser_method?(method_name) && !declared_switch?(method_name)
+      @op.send(method_name, *args, &block)
     else
-      @settings.send(method_name.to_s, *args, &block)
+      @settings.send(method_name, *args, &block)
     end
+  end
+  
+  def option_parser_methods
+    @option_parser_methods ||= @op.methods - Switches.instance_methods - NEVER_FORWARDED
+  end
+  
+  def option_parser_method?(method_name)
+    option_parser_methods.include?(method_name.to_sym)
+  end
+  
+  def declared_switch?(method_name)
+    @all_switches.include?(method_name.to_s.delete_suffix('='))
   end
   
   def switch_string(attr)
