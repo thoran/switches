@@ -2,6 +2,13 @@
 
 ## 20260816
 
+0.12.0: Refuse a switch whose accessor is a method the instance already has, rather than losing it.
+
+1. + lib/Switches.rb: Switches#check_switch_names, called first in #do_set and #do_action, which raises where respond_to?(accessor) is true, #method_missing firing only where no method exists.
+2. + lib/Switches.rb: SwitchNameCollision < ArgumentError.
+3. ~ README.md: + a Notes entry for the refusal, and for the booleans and OptionParser names it does not cover.
+4. + spec/all.rb: the refusal through #set and #perform, the message, that nothing reaches the parser first, and the two legal cases.
+
 0.11.0: Forward to OptionParser, which #method_missing has never actually done.
 
 1. ~ lib/Switches.rb: #method_missing tested (@op.methods - Switches.instance_methods).include?(method_name.to_s), which compares a String against an array of Symbols and so was never true. Every call fell through to the settings OpenStruct, which accepts anything, so s.banner = '...' — documented in the README's "With a banner" example — silently became a setting named banner while the parser kept its default of "Usage: <program_name> [options]". The comparison is now made in symbols, and the forwarding works: #banner=, #separator, #program_name= and the other 58 OptionParser methods reach the parser.

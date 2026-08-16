@@ -164,6 +164,51 @@ describe Switches do
     end
   end
 
+  describe "switch names which collide with a method" do
+    def build(&block)
+      ARGV.clear
+      Switches.new(&block)
+    end
+
+    it "refuses a switch named after a core method" do
+      expect{build{|s| s.set(:tap)}}.to raise_error(SwitchNameCollision, /Kernel#tap/)
+    end
+
+    it "refuses a switch named after a Switches method" do
+      expect{build{|s| s.set(:settings)}}.to raise_error(SwitchNameCollision, /Switches#settings/)
+    end
+
+    it "refuses a colliding name declared through #perform" do
+      expect{build{|s| s.perform(:display){}}}.to raise_error(SwitchNameCollision)
+    end
+
+    it "names the switch in the form it would be supplied in" do
+      expect{build{|s| s.set(:instance_variable_get)}}.to raise_error(SwitchNameCollision, /--instance_variable_get/)
+    end
+
+    it "raises before the switch is declared to the parser" do
+      switches = Switches.new
+      begin; switches.set(:tap); rescue SwitchNameCollision; end
+      expect(switches.to_h).to eq({})
+    end
+
+    it "accepts the name as a boolean, the accessor then carrying a question mark" do
+      ARGV.clear
+      ARGV << '--tap'
+      expect(Switches.new{|s| s.boolean(:tap)}.tap?).to eq(true)
+    end
+
+    it "accepts a name OptionParser has, a declared switch winning over the parser" do
+      ARGV.clear
+      %w{--banner text}.each{|a| ARGV << a}
+      expect(Switches.new{|s| s.set(:banner)}.banner).to eq('text')
+    end
+
+    it "raises a SwitchNameCollision, which is an ArgumentError" do
+      expect(SwitchNameCollision.ancestors).to include(ArgumentError)
+    end
+  end
+
   describe "OptionParser methods" do
     def build(&block)
       ARGV.clear

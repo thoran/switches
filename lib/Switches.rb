@@ -150,6 +150,7 @@ module CastingInterfaceMethods
 end
 
 class RequiredSwitchMissing < RuntimeError; end
+class SwitchNameCollision < ArgumentError; end
 
 class Switches
   
@@ -257,6 +258,7 @@ class Switches
   private
   
   def do_set(requires_argument, *attrs, &block)
+    check_switch_names(*attrs)
     set_if_required_switch(*attrs)
     options = attrs.extract_options!
     @all_switches = @all_switches + attrs.collect{|a| a.to_s}
@@ -268,6 +270,7 @@ class Switches
   end
   
   def do_action(requires_argument, *attrs, &block)
+    check_switch_names(*attrs)
     attrs.each do |attr|
       @settings.send(attr.to_s + '=', nil) # Needs to be set prior to checking for required switches, since that check relies upon the key having been set in @settings.  
     end
@@ -299,6 +302,14 @@ class Switches
     @all_switches.include?(method_name.to_s.delete_suffix('='))
   end
   
+  def check_switch_names(*attrs)
+    attrs.each do |attr|
+      next unless attr.is_a?(Symbol) || attr.is_a?(String)
+      next unless respond_to?(attr.to_s)
+      raise SwitchNameCollision, "switch, #{switch_string(attr)}, is already #{method(attr.to_s).owner}##{attr}, so it would never reach the settings"
+    end
+  end
+
   def switch_string(attr)
     attr = attr.to_s
     "-#{attr.long_switch? ? '-' : ''}#{attr.delete('?')}"
