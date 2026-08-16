@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 20260816
+
+0.10.4: Declare ostruct as a runtime dependency, in place of installing it at require time.
+
+1. ~ lib/Switches.rb: require 'ostruct', in place of the require_gem 'ostruct' introduced in 0.10.0. require_gem rescues the LoadError and shells out to gem install, so the dependency went unannounced and was satisfied silently into whatever GEM_HOME was set — which, under a Homebrew formula's wrapper, means the program installing a gem into its own keg. A library should announce what it needs and fail loudly without it.
+2. ~ switches.rb.gemspec: + s.dependencies = ['ostruct'], declared as data via a dependencies= setter added to the local Gem::Specification reopening, alongside the development_dependencies= setter added in 0.10.3.
+3. - lib/Kernel/require_gem.rb and - lib/Thoran/Kernel/RequireGem/require_gem.rb, vendored in 0.10.0 for the require above and with no remaining user.
+4. ~ Gemfile: - gem 'ostruct', which the gemspec now supplies.
+5. ~ spec/all.rb: the gemspec spec asserted that no runtime dependencies were declared, and now asserts that ostruct is the only one.
+6. ~ lib/Switches.rb: the header's Dependencies section names ostruct, since the Standard Ruby Library no longer covers it.
+7. ~ .gitignore: + a header, + .claude, ~ /tmp/ to tmp/, and - /test/tmp/, which tmp/ now covers.
+
 ## 20260812
 
 0.10.3: Move the version into a constant, and add the standard version and gemspec tests.

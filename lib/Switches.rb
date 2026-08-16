@@ -12,13 +12,12 @@
 # 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  OK, maybe sometimes, but this is pretty obscure IMO.  OK, bad idea.  These can be used as action oriented sub-commands.  
 # 3. Allow for any one of the switches OpenStruct methods to assign values for any of the other associated methods, so as it is more than a read once switch and can be used for storage through out the application; although this might be stepping on Attributes.rb's toes?...  
 
-# Dependencies: 
-# 1. Standard Ruby Library.  
+# Dependencies:
+# 1. Standard Ruby Library.
+# 2. ostruct, which ceased to be a default gem as of Ruby 4.0 and so is declared in the gemspec.
 
 require 'optparse'
-require 'Kernel/require_gem'
-
-require_gem 'ostruct'
+require 'ostruct'
 
 require_relative './Switches/VERSION'
 

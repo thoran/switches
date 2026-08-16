@@ -257,8 +257,8 @@ describe 'switches.rb.gemspec' do
     expect(spec.version.to_s).to eq(Switches::VERSION)
   end
 
-  it "declares no runtime dependencies" do
-    expect(spec.runtime_dependencies.map(&:name).sort).to eq([])
+  it "declares ostruct as its only runtime dependency" do
+    expect(spec.runtime_dependencies.map(&:name).sort).to eq(%w{ostruct})
   end
 
   it "declares its development dependencies" do

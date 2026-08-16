@@ -1,13 +1,17 @@
 require_relative './lib/Switches/VERSION'
 
 class Gem::Specification
+  def dependencies=(gems)
+    gems.each{|gem| add_dependency(*gem)}
+  end
+
   def development_dependencies=(gems)
     gems.each{|gem| add_development_dependency(*gem)}
   end
 end
 
 Gem::Specification.new do |s|
-  s.name = 'switches.rb' # I would have preferred 'switches', but there's a gem with the name of switches.
+  s.name = 'switches.rb'
   s.version = Switches::VERSION
 
   s.summary = "The easiest way to provide switches to a Ruby program."
@@ -19,11 +23,7 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.required_ruby_version = ">= 2.7.0"
-
-  s.development_dependencies = [
-    'rake',
-    'rspec'
-  ]
+  s.require_paths = ['lib']
 
   s.files = [
     'CHANGELOG',
@@ -36,7 +36,14 @@ Gem::Specification.new do |s|
     Dir['spec/**/*.rb'],
   ].flatten
 
-  s.require_paths = ['lib']
+  s.dependencies = [
+    'ostruct'
+  ]
+
+  s.development_dependencies = [
+    'rake',
+    'rspec'
+  ]
 
   s.metadata = {
     "bug_tracker_uri" => "https://github.com/thoran/switches/issues",
