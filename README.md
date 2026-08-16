@@ -135,6 +135,12 @@ switches = Switches.new do |s|
   s.set(:a){'This is the -a switch.'}
 end
 
+# With a multi-word switch, which may be supplied in either its underscored or its hyphenated form
+switches = Switches.new do |s|
+  s.boolean(:update_template)
+end
+# --update_template and --update-template both set it, and the setting remains #update_template?
+
 # With a banner
 switches = Switches.new do |s|
   s.banner = 'Here is a banner for the switches.'
@@ -189,6 +195,7 @@ switches.class # => Hash
 - A `Switches` instance can't define a method whose name matches an `OptionParser` method, since such calls are forwarded to the underlying `OptionParser` instance.
 - There is a clear demarcation between whether a switch's argument is required and whether the switch itself is required.
 - The bang interface methods (for example `set!` and `required!`) modify the switch in place with a required argument, rather than relying on a default or a value set elsewhere and later.
+- A long switch whose name carries an underscore may be supplied in its hyphenated form as well, so `s.boolean(:update_template)` accepts both `--update_template` and `--update-template`. This comes from `OptionParser`, which files a long switch under a lookup key with its underscores turned to hyphens and applies the same conversion to whatever is supplied, so the two forms are one switch rather than two. The setting is named for the symbol declared, and so remains `#update_template?` whichever form was supplied. Declaring the attribute hyphenated, as `:'update-template'`, buys nothing and costs the accessor, which would then be reachable only through `#send`.
 
 ## Contributing
 

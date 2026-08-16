@@ -284,12 +284,17 @@ class Switches
     end
   end
   
+  def switch_string(attr)
+    attr = attr.to_s
+    "-#{attr.long_switch? ? '-' : ''}#{attr.delete('?')}"
+  end
+  
   def on_args(requires_argument, options, *attrs, &block)
     on_args = []
     attrs.collect{|e| e.to_s}.each do |attr|
       @defaults[attr] = options[:default] if options[:default]
       @castings[attr] = (options[:cast] || options[:type] || options[:class]) if (options[:cast] || options[:type] || options[:class])
-      on_args << "-#{attr.long_switch? ? '-' : ''}#{attr.to_s.delete('?')}"
+      on_args << switch_string(attr)
     end
     if requires_argument
       on_args << (on_args.pop + ' REQUIRED_ARGUMENT')
@@ -310,7 +315,7 @@ class Switches
     messages = []
     @required_switches.each do |required_switch|
       unless supplied_switches.include?(required_switch)
-        messages << "required switch, -#{required_switch.long_switch? ? '-' : ''}#{required_switch.to_s.delete('?')}, is missing"
+        messages << "required switch, #{switch_string(required_switch).tr('_', '-')}, is missing"
       end
     end
     unless messages.empty?

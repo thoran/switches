@@ -164,6 +164,89 @@ describe Switches do
     end
   end
 
+  describe "multi-word switches" do
+    def build(switches_string = '')
+      ARGV.clear
+      switches_string.split.each{|a| ARGV << a}
+      Switches.new do |s|
+        s.boolean :update_template
+        s.set :access_token
+      end
+    end
+
+    it "sets a boolean switch supplied in its underscored form" do
+      expect(build('--update_template').update_template?).to eq(true)
+    end
+
+    it "sets a boolean switch supplied in its hyphenated form" do
+      expect(build('--update-template').update_template?).to eq(true)
+    end
+
+    it "sets a switch to the argument supplied in its underscored form" do
+      expect(build('--access_token abc123').access_token).to eq('abc123')
+    end
+
+    it "sets a switch to the argument supplied in its hyphenated form" do
+      expect(build('--access-token abc123').access_token).to eq('abc123')
+    end
+
+    it "names the setting for the symbol declared, whichever form is supplied" do
+      expect(build('--update-template --access-token abc123').to_h).to eq({update_template?: true, access_token: 'abc123'})
+    end
+  end
+
+  describe "multi-word switches with a required argument" do
+    def build(switches_string = '')
+      ARGV.clear
+      switches_string.split.each{|a| ARGV << a}
+      Switches.new do |s|
+        s.set! :access_token
+      end
+    end
+
+    it "sets the switch to the argument supplied in its underscored form" do
+      expect(build('--access_token abc123').access_token).to eq('abc123')
+    end
+
+    it "sets the switch to the argument supplied in its hyphenated form" do
+      expect(build('--access-token abc123').access_token).to eq('abc123')
+    end
+
+    it "raises OptionParser::MissingArgument when no argument is supplied to the underscored form" do
+      expect{build('--access_token')}.to raise_error(OptionParser::MissingArgument)
+    end
+
+    it "raises OptionParser::MissingArgument when no argument is supplied to the hyphenated form" do
+      expect{build('--access-token')}.to raise_error(OptionParser::MissingArgument)
+    end
+  end
+
+  describe "multi-word required switches" do
+    def build(switches_string = '')
+      ARGV.clear
+      switches_string.split.each{|a| ARGV << a}
+      Switches.new do |s|
+        s.required :access_token
+      end
+    end
+
+    it "counts the underscored form as supplied" do
+      expect(build('--access_token abc123').access_token).to eq('abc123')
+    end
+
+    it "counts the hyphenated form as supplied" do
+      expect(build('--access-token abc123').access_token).to eq('abc123')
+    end
+
+    it "raises RequiredSwitchMissing when neither form is supplied" do
+      expect{build}.to raise_error(RequiredSwitchMissing)
+    end
+
+    it "names the hyphenated form in the RequiredSwitchMissing message" do
+      expect{build}.to raise_error(RequiredSwitchMissing, /--access-token/)
+    end
+  end
+
   describe "#perform" do
     def build(switches_string = '', &block)
       ARGV.clear

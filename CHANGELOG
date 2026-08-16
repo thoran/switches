@@ -2,6 +2,13 @@
 
 ## 20260816
 
+0.10.5: Specify and document that a multi-word switch may be supplied hyphenated, and name that form when it is missing.
+
+1. + spec/all.rb: multi-word switches, in both their underscored and their hyphenated form, for a boolean, an optional argument (#set), a required argument (#set!) and a required switch (#required); that either form counts as supplied for a required switch; and that the setting is named for the symbol declared whichever form was supplied. This behaviour is OptionParser's rather than this library's — a long switch is filed under a lookup key with its underscores turned to hyphens, and whatever is supplied is converted the same way before the lookup, so --update_template and --update-template have always been the one switch. It went untested and undocumented here, which left it resting upon an implementation detail of a library this one only wraps. The specs now pin it, and would fail here rather than in a caller's script were it ever to change.
+2. ~ lib/Switches.rb: the missing-switch message names the hyphenated form, so a switch declared :access_token is reported as --access-token, in place of the --access_token built from the symbol verbatim. Cosmetic, and it says the form to prefer at a command line.
+3. ~ lib/Switches.rb: + Switches#switch_string, which builds the switch string for an attribute, in place of the identical construction #on_args and #check_required_switches each carried.
+4. ~ README.md: + a multi-word switch to the Usage section, and + a note recording where the behaviour comes from, that the setting is named for the symbol declared, and that declaring the attribute hyphenated buys nothing and costs the accessor.
+
 0.10.4: Declare ostruct as a runtime dependency, in place of installing it at require time.
 
 1. ~ lib/Switches.rb: require 'ostruct', in place of the require_gem 'ostruct' introduced in 0.10.0. require_gem rescues the LoadError and shells out to gem install, so the dependency went unannounced and was satisfied silently into whatever GEM_HOME was set — which, under a Homebrew formula's wrapper, means the program installing a gem into its own keg. A library should announce what it needs and fail loudly without it.
