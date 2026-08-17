@@ -3,15 +3,6 @@
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
 
-# Todo:
-# 1. Clean up #set.  Done as of 0.4.0.  
-# 2. Reinstitute some specs.  Done as of 0.9.8.  
-
-# Ideas: 
-# 1. Use ! for options with required switches?  Done as of 0.6.0.  (Changed to being for required arguments in 0.9.0 however.)
-# 2. Do away with optional arguments entirely.  Since when does anyone want to specify a non-boolean switch and then supply no arguments anyway?...  OK, maybe sometimes, but this is pretty obscure IMO.  OK, bad idea.  These can be used as action oriented sub-commands.  
-# 3. Allow for any one of the switches OpenStruct methods to assign values for any of the other associated methods, so as it is more than a read once switch and can be used for storage through out the application; although this might be stepping on Attributes.rb's toes?...  
-
 # Dependencies:
 # 1. Standard Ruby Library.
 # 2. ostruct, which ceased to be a default gem as of Ruby 4.0 and so is declared in the gemspec.

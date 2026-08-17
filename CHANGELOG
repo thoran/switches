@@ -2,30 +2,33 @@
 
 ## 20260816
 
+0.12.1: Move the reasoning out of the CHANGELOG and the header into a ROADMAP.
+
+1. + ROADMAP.md: the design philosophy, a section per shipped version carrying why it went the way it did, the open questions, and the settled items. Not listed in the gemspec, so it does not ship. Follows namo's ROADMAP.md.
+2. - lib/Switches.rb: the # Todo: and # Ideas: header sections, now in ROADMAP.md, finishing what 0.10.2 began.
+3. ~ CHANGELOG: the 0.10.5 and 0.11.0 entries carried reasoning, measurement and outstanding work in prose between their numbered items; that is now in ROADMAP.md, and the entries record what changed.
+
 0.12.0: Refuse a switch whose accessor is a method the instance already has, rather than losing it.
 
 1. + lib/Switches.rb: Switches#check_switch_names, called first in #do_set and #do_action, which raises where respond_to?(accessor) is true, #method_missing firing only where no method exists.
 2. + lib/Switches.rb: SwitchNameCollision < ArgumentError.
 3. ~ README.md: + a Notes entry for the refusal, and for the booleans and OptionParser names it does not cover.
 4. + spec/all.rb: the refusal through #set and #perform, the message, that nothing reaches the parser first, and the two legal cases.
+5. + ROADMAP.md, and - the # Todo: and # Ideas: sections from the lib/Switches.rb header, which is where they were. Not listed in the gemspec, so it does not ship.
 
 0.11.0: Forward to OptionParser, which #method_missing has never actually done.
 
-1. ~ lib/Switches.rb: #method_missing tested (@op.methods - Switches.instance_methods).include?(method_name.to_s), which compares a String against an array of Symbols and so was never true. Every call fell through to the settings OpenStruct, which accepts anything, so s.banner = '...' — documented in the README's "With a banner" example — silently became a setting named banner while the parser kept its default of "Usage: <program_name> [options]". The comparison is now made in symbols, and the forwarding works: #banner=, #separator, #program_name= and the other 58 OptionParser methods reach the parser.
-2. ~ lib/Switches.rb: a declared switch takes precedence over an OptionParser method of the same name, + Switches#declared_switch?. Making the forwarding work otherwise shadows any switch sharing a name with the parser, and OptionParser has version, help, release, load, order, top, base, parse, warn, abort and banner among its 61, several of which are switches a program would reasonably want. The rule is that the program's own declarations beat the wrapper's interface, which also leaves any existing program's switches reading as they did.
-3. ~ lib/Switches.rb: + Switches::NEVER_FORWARDED, the names Ruby may call implicitly, which are excluded from the forwarded set. The set has always been built by subtraction — everything the parser responds to, less everything Switches defines — which admits any such name Switches does not happen to define. OptionParser#to_a is `summarize("#{banner}".split(/^/))`, so without the exclusion Array(switches) and [*switches] answer with the parser's help. That was latent for as long as the branch was dead and became reachable the moment it was not, so it is part of this fix rather than a consequence of it. to_h was never at risk, but only because Switches happens to define it; the constant makes the exclusion deliberate rather than incidental.
-4. ~ lib/Switches.rb: + Switches#option_parser_methods, memoised, since the difference was recomputed upon every settings read, and + Switches#option_parser_method?.
-5. + spec/all.rb: forwarding of a writer, of a method taking an argument, and of a reader, each checked through the parser's own help output rather than by reading back what was written; that a declared switch wins over the OptionParser method of the same name, read and written; that a name which is neither still reaches the settings; and that #to_a, Array() and the splat are answered by the switches rather than the parser.
-6. ~ README.md: the Notes entry claiming a Switches instance can't define a method whose name matches an OptionParser method now describes what happens, which is the reverse: the switch wins.
-
-Not done: #respond_to_missing?, which ordinarily accompanies #method_missing. Note that it would not have prevented the to_a case above — Ruby's conversion check falls back to calling #method_missing directly when the ordinary dispatch fails, so Array() reaches #to_a whatever respond_to? answers. It wants deciding alongside the collision question below, both being about which names the object should own.
-
-Still outstanding: the converse fault, where #method_missing does not fire at all because the method exists. A switch named after a method Object already has — :tap, :class, :display, :hash, :method, :type — never reaches the settings, and Kernel#tap without a block raises LocalJumpError nowhere near the declaration.
+1. ~ lib/Switches.rb: #method_missing compared method_name.to_s against @op.methods, an array of Symbols, so the forwarding branch was never true; now compared in symbols.
+2. ~ lib/Switches.rb: + Switches#declared_switch?, giving a declared switch precedence over the OptionParser method of the same name.
+3. + lib/Switches.rb: Switches::NEVER_FORWARDED, the names Ruby may call implicitly, excluded from the forwarded set, OptionParser#to_a otherwise answering Array() with the help.
+4. ~ lib/Switches.rb: + Switches#option_parser_methods, memoised, and + Switches#option_parser_method?.
+5. + spec/all.rb: the forwarding, the precedence rule, the fall-through, and #to_a.
+6. ~ README.md: the Notes entry describing forwarding, which had it backwards.
 
 0.10.5: Specify and document that a multi-word switch may be supplied hyphenated, and name that form when it is missing.
 
-1. + spec/all.rb: multi-word switches, in both their underscored and their hyphenated form, for a boolean, an optional argument (#set), a required argument (#set!) and a required switch (#required); that either form counts as supplied for a required switch; and that the setting is named for the symbol declared whichever form was supplied. This behaviour is OptionParser's rather than this library's — a long switch is filed under a lookup key with its underscores turned to hyphens, and whatever is supplied is converted the same way before the lookup, so --update_template and --update-template have always been the one switch. It went untested and undocumented here, which left it resting upon an implementation detail of a library this one only wraps. The specs now pin it, and would fail here rather than in a caller's script were it ever to change.
-2. ~ lib/Switches.rb: the missing-switch message names the hyphenated form, so a switch declared :access_token is reported as --access-token, in place of the --access_token built from the symbol verbatim. Cosmetic, and it says the form to prefer at a command line.
+1. + spec/all.rb: multi-word switches in both their underscored and their hyphenated form, for a boolean, an optional argument (#set), a required argument (#set!) and a required switch (#required); that either form counts as supplied; and that the setting is named for the symbol declared. The behaviour is OptionParser's, a long switch being filed under a lookup key with its underscores turned to hyphens.
+2. ~ lib/Switches.rb: the missing-switch message names the hyphenated form, so a switch declared :access_token is reported as --access-token, in place of the --access_token built from the symbol verbatim.
 3. ~ lib/Switches.rb: + Switches#switch_string, which builds the switch string for an attribute, in place of the identical construction #on_args and #check_required_switches each carried.
 4. ~ README.md: + a multi-word switch to the Usage section, and + a note recording where the behaviour comes from, that the setting is named for the symbol declared, and that declaring the attribute hyphenated buys nothing and costs the accessor.
 
