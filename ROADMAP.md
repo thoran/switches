@@ -1,6 +1,6 @@
 # Switches Roadmap
 
-Date: 20260816
+Date: 20260817
 
 Not listed in the gemspec, so it does not ship with the gem.
 
@@ -19,7 +19,7 @@ the names Ruby may call implicitly belong to nobody and are answered by the
 settings. Where a name would be lost, the declaration is refused rather than
 accepted.
 
-## Current state: 0.12.0
+## Current state: 0.13.0
 
 ### 0.10.4 (2026-08-16): ostruct as a declared dependency
 
@@ -92,7 +92,7 @@ The set is memoised for the same reason it had gone unexamined. Every settings
 read arrives through `#method_missing`, so the difference of two method lists was
 being computed on each one, and nothing had ever depended upon the answer.
 
-### 0.12.0 (2026-08-16): refusing a colliding switch name
+### 0.12.0 (2026-08-17): refusing a colliding switch name
 
 `#method_missing` fires only where no method exists, so a switch named after a
 method the instance already has parses, stores its value, and is then answered by
@@ -130,6 +130,54 @@ is refused and what is actually lost.
 
 A name OptionParser has is deliberately still allowed, 0.11.0 having given a
 declared switch precedence over the parser.
+
+### 0.13.0 (2026-08-17): the specs, from RSpec to Minitest
+
+Minitest spec style is the convention everywhere else and `spec/all.rb` was the
+laggard, having grown by about ninety lines of RSpec across 0.10.5 to 0.12.0
+without the mismatch being raised. 75 examples converted, and the suite now runs
+75 runs / 92 assertions — more assertions than examples because a raise with a
+message pattern becomes two.
+
+| RSpec | Minitest | count |
+|---|---|---|
+| `expect(x).to eq(y)` | `_(x).must_equal y` | 54 |
+| `expect{...}.to raise_error(E)` | `_{...}.must_raise E` | 17 |
+| `expect(x).to match(/../)` | `_(x).must_match(/../)` | 4 |
+| `expect(x).to include(y)` | `_(x).must_include y` | 1 |
+| `expect(x).to be_a(String)` | `_(x).must_be_kind_of String` | 1 |
+
+`describe`/`it` and the `def build` helpers carried over untouched, and `let`
+needed nothing, Minitest::Spec having its own. Outside the suite: the Rakefile's
+`RSpec::Core::RakeTask` became `Rake::TestTask`, the gemspec's development
+dependencies became minitest and rake, and the spec asserting those dependencies
+was updated with them — it fails on its own conversion otherwise.
+
+Four things the mechanical substitution got wrong, all worth knowing before the
+next suite:
+
+- `raise_error(E, /re/)` has no single Minitest equivalent. It becomes
+  `error = _{...}.must_raise E` followed by `_(error.message).must_match(/re/)`,
+  which is why the assertion count exceeds the example count.
+- `eq(nil)` cannot become `must_equal nil` — Minitest 6 rejects it. It is
+  `must_be_nil`.
+- `must_equal {}` parses the hash literal as a block. A hash or array argument
+  needs its parentheses kept: `must_equal({})`.
+- A bare regex as the first argument — `must_match /re/` — is ambiguous with
+  division and warns. Parenthesise it.
+
+`not_to raise_error` has no equivalent either, there being no `refute_raises`.
+The one instance asserts on the outcome instead: the call completes and returns a
+Switches, which is what not raising means here.
+
+No tool covers this hop. `should2expect` converts RSpec's `should ==` to
+`expect`, which is RSpec to RSpec, and `minitest_test2spec` converts Minitest test
+class style to spec style. RSpec to Minitest sits between the two and was done by
+hand, scripted per pattern with the four exceptions above fixed afterwards.
+
+Verified to have teeth rather than merely to pass: run against 0.11.0's library
+the suite gives 5 errors, all in the collision describe, `SwitchNameCollision`
+not existing there.
 
 ## Open questions
 

@@ -1,6 +1,16 @@
 # CHANGELOG
 
-## 20260816
+## 20260817
+
+0.13.0: Convert the specs from RSpec to Minitest.
+
+1. ~ spec/all.rb: Minitest spec style throughout, + require 'minitest/autorun'. The 75 examples run as 75 runs and 92 assertions, a raise checked for its message becoming two. The substitutions are tabulated in ROADMAP.md, along with the four the mechanical pass got wrong.
+2. ~ Rakefile: Rake::TestTask in place of RSpec::Core::RakeTask, pointed at spec/all.rb.
+3. ~ switches.rb.gemspec: minitest and rake as the development dependencies, in place of rake and rspec.
+4. ~ spec/all.rb: the gemspec spec which asserts those dependencies, which the conversion otherwise fails against itself.
+5. ~ CHANGELOG: - item 5 of the 0.12.0 entry, which named ROADMAP.md and the header's Todo and Ideas sections. Both went out in 0.12.1 and 0.12.0 contains neither; it was left behind when the one commit was split into two.
+6. ~ ROADMAP.md: the conversion moves from Open questions into 0.13.0's section, and 0.12.0's section is dated 20260817, which is when it was made.
+7. ~ CHANGELOG: the date headings — 0.13.0, 0.12.1 and 0.12.0 under 20260817, and + 20260816 for 0.11.0, 0.10.5 and 0.10.4, which had been left under the one heading with them.
 
 0.12.1: Move the reasoning out of the CHANGELOG and the header into a ROADMAP.
 
@@ -14,7 +24,9 @@
 2. + lib/Switches.rb: SwitchNameCollision < ArgumentError.
 3. ~ README.md: + a Notes entry for the refusal, and for the booleans and OptionParser names it does not cover.
 4. + spec/all.rb: the refusal through #set and #perform, the message, that nothing reaches the parser first, and the two legal cases.
-5. + ROADMAP.md, and - the # Todo: and # Ideas: sections from the lib/Switches.rb header, which is where they were. Not listed in the gemspec, so it does not ship.
+
+
+## 20260816
 
 0.11.0: Forward to OptionParser, which #method_missing has never actually done.
 
@@ -41,6 +53,7 @@
 5. ~ spec/all.rb: the gemspec spec asserted that no runtime dependencies were declared, and now asserts that ostruct is the only one.
 6. ~ lib/Switches.rb: the header's Dependencies section names ostruct, since the Standard Ruby Library no longer covers it.
 7. ~ .gitignore: + a header, + .claude, ~ /tmp/ to tmp/, and - /test/tmp/, which tmp/ now covers.
+
 
 ## 20260812
 
@@ -77,6 +90,7 @@
 4. - Gemfile.lock, which a library should not track, and + .gitignore to keep it out.
 5. + LICENSE.txt: the MIT licence.
 6. + CHANGELOG: this file.
+
 
 ## 20180404
 

@@ -1,9 +1,9 @@
 # Rakefile
 
-require 'rspec/core/rake_task'
+require 'rake/testtask'
 
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.pattern = 'spec/all.rb'
+Rake::TestTask.new(:spec) do |t|
+  t.test_files = ['spec/all.rb']
 end
 
 task default: :spec

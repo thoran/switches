@@ -41,8 +41,8 @@ Gem::Specification.new do |s|
   ]
 
   s.development_dependencies = [
-    'rake',
-    'rspec'
+    'minitest',
+    'rake'
   ]
 
   s.metadata = {
