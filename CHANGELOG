@@ -1,4 +1,19 @@
-# CHANGELOG
+# switches/CHANGELOG
+
+## 20260921
+
+0.14.0: ~ lib/Switches.rb --> lib/switches.rb, so that it works on both case sensitive and case insensitive filesystems.
+
+1. ~ lib/Switches.rb --> lib/switches.rb.
+2. ~ spec/all.rb --> test/switches_test.rb, - spec/.
+3. + test/Switches/VERSION_test.rb, test/gemspec_test.rb, test/loading_test.rb.
+4. ~ Rakefile: FileList['test/**/*_test.rb'] for ['spec/all.rb'], /:spec/:test/, + a version task.
+5. ~ switches.rb.gemspec: /LICENSE.txt/LICENSE/, /Dir['spec/**\/*.rb']/Dir['test/**\/*_test.rb']/, + the heading comment.
+6. ~ LICENSE.txt --> LICENSE.
+7. ~ set_switches_with_defaults: if casting == Integer for case @castings[switch] when Integer. case/when asks whether the value is an instance of the class, and @castings holds the class itself, so Integer === Integer was false, no branch was taken, and every switch declared with a cast and a default answered nil. integer!, float!, array! and regexp! alike, with or without the bang.
+8. + 6 examples for a default upon a switch which casts, one per cast and two controls. The four cast examples fail against the previous form and the two controls do not, --mailbox having no cast and a supplied value never reaching the default.
+9. ~ README.md: + a License section.
+10. ~ Switches::VERSION: /0.13.0/0.14.0/
 
 ## 20260817
 

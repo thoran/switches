@@ -1,8 +1,8 @@
-# spec/all.rb
+# test/switches_test.rb
 
 require 'minitest/autorun'
 
-require_relative '../lib/Switches'
+require_relative '../lib/switches'
 
 describe Switches do
   describe ".new" do
@@ -409,45 +409,41 @@ describe Switches do
       _{build('-a'){}}.must_raise OptionParser::MissingArgument
     end
   end
-end
-
-describe Switches do
-  describe "VERSION" do
-    it "is a string" do
-      _(Switches::VERSION).must_be_kind_of String
+  describe "a default upon a switch which casts" do
+    def build(switches_string = '')
+      ARGV.clear
+      switches_string.split.each{|a| ARGV << a}
+      Switches.new do |s|
+        s.integer!(:lines, default: '10')
+        s.float!(:ratio, default: '1.5')
+        s.array!(:hosts, default: ['a', 'b'])
+        s.regexp!(:pattern, default: 'ab+c')
+        s.optional!(:mailbox, default: 'INBOX')
+      end
     end
 
-    it "is three numbers separated by dots" do
-      _(Switches::VERSION).must_match(/\A\d+\.\d+\.\d+\z/)
+    it "casts an integer default rather than answering nil" do
+      _(build.lines).must_equal 10
     end
 
-    it "matches the newest entry in the CHANGELOG" do
-      changelog = File.read(File.expand_path('../CHANGELOG', __dir__))
-      _(changelog[/^(\d+\.\d+\.\d+):/, 1]).must_equal Switches::VERSION
+    it "casts a float default rather than answering nil" do
+      _(build.ratio).must_equal 1.5
     end
-  end
-end
 
-describe 'switches.rb.gemspec' do
-  let(:spec){Gem::Specification.load(File.expand_path('../switches.rb.gemspec', __dir__))}
+    it "carries an array default rather than answering nil" do
+      _(build.hosts).must_equal ['a', 'b']
+    end
 
-  it "is a valid specification" do
-    _(spec.validate).must_equal true
-  end
+    it "casts a regexp default rather than answering nil" do
+      _(build.pattern).must_equal(/ab+c/)
+    end
 
-  it "does not pin a date" do
-    _(spec.date).must_equal Gem::Specification.new.date
-  end
+    it "leaves a default upon a switch which does not cast alone" do
+      _(build.mailbox).must_equal 'INBOX'
+    end
 
-  it "takes its version from Switches::VERSION" do
-    _(spec.version.to_s).must_equal Switches::VERSION
-  end
-
-  it "declares ostruct as its only runtime dependency" do
-    _(spec.runtime_dependencies.map(&:name).sort).must_equal %w{ostruct}
-  end
-
-  it "declares its development dependencies" do
-    _(spec.development_dependencies.map(&:name).sort).must_equal %w{minitest rake}
+    it "prefers a supplied value to the default" do
+      _(build('--lines 3').lines).must_equal 3
+    end
   end
 end

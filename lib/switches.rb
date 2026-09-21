@@ -1,4 +1,4 @@
-# Switches.rb
+# switches.rb
 # Switches
 
 # Description: Switches provides for a nice wrapper to OptionParser to also act as a store for switches supplied.  
@@ -344,12 +344,16 @@ class Switches
     switches_with_defaults.each do |switch|
       if @settings.to_h[switch.to_sym].nil?
         if switches_with_castings.include?(switch)
+          casting = @castings[switch]
           cast_value = (
-            case @castings[switch]
-            when Integer; @defaults[switch].to_i
-            when Float; @defaults[switch].to_f
-            when Array; @defaults[switch].to_a
-            when Regexp; Regexp.new(@defaults[switch])
+            if casting == Integer
+              @defaults[switch].to_i
+            elsif casting == Float
+              @defaults[switch].to_f
+            elsif casting == Array
+              @defaults[switch].to_a
+            elsif casting == Regexp
+              Regexp.new(@defaults[switch])
             end
           )
           @settings.send(switch + '=', cast_value)

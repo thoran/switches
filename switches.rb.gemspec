@@ -1,3 +1,5 @@
+# switches.rb.gemspec
+
 require_relative './lib/Switches/VERSION'
 
 class Gem::Specification
@@ -26,14 +28,14 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.files = [
-    'CHANGELOG',
-    'Gemfile',
-    'LICENSE.txt',
-    'Rakefile',
-    'README.md',
     'switches.rb.gemspec',
     Dir['lib/**/*.rb'],
-    Dir['spec/**/*.rb'],
+    Dir['test/**/*_test.rb'],
+    'CHANGELOG',
+    'Gemfile',
+    'LICENSE',
+    'Rakefile',
+    'README.md',
   ].flatten
 
   s.dependencies = [
