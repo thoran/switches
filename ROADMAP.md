@@ -19,7 +19,7 @@ the names Ruby may call implicitly belong to nobody and are answered by the
 settings. Where a name would be lost, the declaration is refused rather than
 accepted.
 
-## Current state: 0.13.0
+## Current state: 0.14.1
 
 ### 0.10.4 (2026-08-16): ostruct as a declared dependency
 
@@ -178,6 +178,28 @@ hand, scripted per pattern with the four exceptions above fixed afterwards.
 Verified to have teeth rather than merely to pass: run against 0.11.0's library
 the suite gives 5 errors, all in the collision describe, `SwitchNameCollision`
 not existing there.
+
+### 0.14.1 (2026-10-26): towards compiling under Spinel
+
+Spinel, Matz's ahead-of-time compiler, makes a standalone executable of a Ruby
+program, so a tool built on Switches could ship without Ruby or gems. It
+resolves every call at compile time, and Switches meets it with a handful of
+refusals and a larger problem: Spinel never calls `#method_missing`, which is
+how every setting is read. The refusals are cleared one release at a time,
+those needing no change in behaviour first, as 0.14.1 to 0.14.4; the casting
+methods follow in 0.15.0, and how settings are read after that.
+
+0.14.1 takes two. `OpenStruct#to_h` was reopened to answer `@table` on
+2012-11-09, three months before Ruby 2.0 gave OpenStruct a `#to_h` of its own,
+and outlived the need. Spinel's OpenStruct belongs to its runtime and cannot be
+reopened. Removing the patch also undoes what it had been doing to every
+OpenStruct in a program which loaded Switches: `#to_h` ignored its block and
+handed out the live table, so a change to the Hash was a change to the struct.
+
+And settings are written through `OpenStruct#[]=` rather than `#send` with a
+name built at run time, which Spinel refuses. Under CRuby the two are the same
+call, `#[]=` defining the accessor just as the writer reached through
+`#method_missing` did.
 
 ## Open questions
 

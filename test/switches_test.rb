@@ -446,4 +446,36 @@ describe Switches do
       _(build('--lines 3').lines).must_equal 3
     end
   end
+
+  describe "#to_h" do
+    def build(switches_string = '')
+      ARGV.clear
+      switches_string.split.each{|a| ARGV << a}
+      Switches.new do |s|
+        s.set :p, :port
+      end
+    end
+
+    it "answers the settings as a Hash" do
+      _(build('-p 22').to_h).must_equal({p: '22', port: '22'})
+    end
+
+    it "answers a copy, which leaves the settings alone when changed" do
+      switches = build('-p 22')
+      switches.to_h[:port] = '80'
+      _(switches.port).must_equal '22'
+    end
+  end
+
+  describe "OpenStruct, with switches.rb loaded" do
+    it "keeps the block form of #to_h" do
+      _(OpenStruct.new(a: 1).to_h{|k, v| [k.to_s, v * 10]}).must_equal({'a' => 10})
+    end
+
+    it "answers a copy from #to_h, which leaves the struct alone when changed" do
+      struct = OpenStruct.new(a: 1)
+      struct.to_h[:b] = 2
+      _(struct.b).must_be_nil
+    end
+  end
 end

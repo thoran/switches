@@ -12,14 +12,6 @@ require 'ostruct'
 
 require_relative './Switches/VERSION'
 
-class OpenStruct
-  
-  def to_h
-    @table
-  end
-  
-end
-
 class String
   
   def short_switch?
@@ -255,7 +247,7 @@ class Switches
     @all_switches = @all_switches + attrs.collect{|a| a.to_s}
     @op.on(*on_args(requires_argument, options, *attrs, &block)) do |o|
       attrs.each do |attr|
-        @settings.send(attr.to_s + '=', o)
+        @settings[attr.to_sym] = o
       end
     end
   end
@@ -263,7 +255,7 @@ class Switches
   def do_action(requires_argument, *attrs, &block)
     check_switch_names(*attrs)
     attrs.each do |attr|
-      @settings.send(attr.to_s + '=', nil) # Needs to be set prior to checking for required switches, since that check relies upon the key having been set in @settings.  
+      @settings[attr.to_sym] = nil # Needs to be set prior to checking for required switches, since that check relies upon the key having been set in @settings.  
     end
     set_if_required_switch(*attrs)
     options = attrs.extract_options!
@@ -356,16 +348,16 @@ class Switches
               Regexp.new(@defaults[switch])
             end
           )
-          @settings.send(switch + '=', cast_value)
+          @settings[switch.to_sym] = cast_value
         else
-          @settings.send(switch + '=', @defaults[switch])
+          @settings[switch.to_sym] = @defaults[switch]
         end
       end
     end
   end
   
   def set_unset_switches
-    unset_switches.each{|switch| @settings.send(switch + '=', nil)}
+    unset_switches.each{|switch| @settings[switch.to_sym] = nil}
   end
   
   def set_if_required_switch(*attrs)

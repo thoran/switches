@@ -1,5 +1,14 @@
 # switches/CHANGELOG
 
+## 20261026
+
+0.14.1: - OpenStruct#to_h, which took the block from every OpenStruct's #to_h in a program and handed out its live table.
+
+1. - lib/switches.rb: OpenStruct#to_h. ostruct's own answers a copy of the table and takes a block.
+2. ~ #do_set, #do_action, #set_switches_with_defaults, #set_unset_switches: @settings[name.to_sym] = value for @settings.send(name + '=', value). Spinel refuses a send whose method name is built at run time.
+3. + test/switches_test.rb: #to_h answers the settings, and a copy of them; with switches.rb loaded, OpenStruct#to_h keeps its block and answers a copy.
+4. ~ Switches::VERSION: /0.14.0/0.14.1/
+
 ## 20260921
 
 0.14.0: ~ lib/Switches.rb --> lib/switches.rb, so that it works on both case sensitive and case insensitive filesystems.
