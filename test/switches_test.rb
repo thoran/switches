@@ -183,6 +183,11 @@ describe Switches do
       _(error.message).must_match(/Switches#settings/)
     end
 
+    it "names a module the method comes from" do
+      error = _{build{|s| s.set(:integer)}}.must_raise SwitchNameCollision
+      _(error.message).must_match(/CastingInterfaceMethods#integer/)
+    end
+
     it "refuses a colliding name declared through #perform" do
       _{build{|s| s.perform(:display){}}}.must_raise SwitchNameCollision
     end

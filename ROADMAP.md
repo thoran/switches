@@ -19,7 +19,7 @@ the names Ruby may call implicitly belong to nobody and are answered by the
 settings. Where a name would be lost, the declaration is refused rather than
 accepted.
 
-## Current state: 0.14.2
+## Current state: 0.14.3
 
 ### 0.10.4 (2026-08-16): ostruct as a declared dependency
 
@@ -211,6 +211,26 @@ as before; they had no tests, and now have one each.
 The patch was on Module, so every class in a program which loaded Switches had
 it, but nothing outside this library called it. `Array#all_but_last`, and the
 `Array#last!` it called, were there only to serve it, and went with it.
+
+### 0.14.3 (2026-10-26): the collision message under Spinel
+
+`SwitchNameCollision`'s message names where the colliding method comes from,
+`Kernel#tap` or `Switches#settings`, through `method(name).owner`. Spinel
+refuses `#method` with a name known only at run time, and refuses
+`public_method_defined?` in the same position, which was the other way of
+finding the owner: walking the ancestors for the first which defines the name.
+Measured against every public method of an instance, 92 of them, the walk
+agreed with `#owner` every time under CRuby; but compiled on its own, where
+Spinel did accept it, it answered nil for everything in Kernel, its runtime
+having no Kernel to reflect upon.
+
+So the owner is asked for only where `RUBY_ENGINE` is not `'spinel'`. Spinel
+folds the comparison and drops the branch, and the message there reads
+`is already #tap`. Under CRuby it is unchanged.
+
+A branch on the engine is the narrowest change which keeps the message, and the
+only one in the library. Were there to be more, a build step which strips them
+for Spinel would be the place for them rather than the source.
 
 ## Open questions
 

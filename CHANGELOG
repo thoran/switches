@@ -2,6 +2,13 @@
 
 ## 20261026
 
+0.14.3: SwitchNameCollision's message names the method's owner except under Spinel, where it cannot be known.
+
+1. + Switches#owner_of: the owner of the method a switch name collides with, or nil under Spinel, which refuses #method with a name known only at run time.
+2. ~ #check_switch_names: owner_of(attr) for method(attr.to_s).owner.
+3. + test/switches_test.rb: the message names a module the method comes from, CastingInterfaceMethods#integer.
+4. ~ Switches::VERSION: /0.14.2/0.14.3/
+
 0.14.2: - Module#alias_methods, the aliases it made being written out as alias_method.
 
 1. - lib/switches.rb: Module#alias_methods. Spinel refuses an alias whose names are only known at run time.

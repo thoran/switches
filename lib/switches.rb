@@ -279,8 +279,13 @@ class Switches
     attrs.each do |attr|
       next unless attr.is_a?(Symbol) || attr.is_a?(String)
       next unless respond_to?(attr.to_s)
-      raise SwitchNameCollision, "switch, #{switch_string(attr)}, is already #{method(attr.to_s).owner}##{attr}, so it would never reach the settings"
+      raise SwitchNameCollision, "switch, #{switch_string(attr)}, is already #{owner_of(attr)}##{attr}, so it would never reach the settings"
     end
+  end
+
+  # Spinel can name neither the method nor its owner at compile time, so there the message goes without.
+  def owner_of(attr)
+    method(attr.to_s).owner unless RUBY_ENGINE == 'spinel'
   end
 
   def switch_string(attr)
