@@ -19,7 +19,7 @@ the names Ruby may call implicitly belong to nobody and are answered by the
 settings. Where a name would be lost, the declaration is refused rather than
 accepted.
 
-## Current state: 0.14.1
+## Current state: 0.14.2
 
 ### 0.10.4 (2026-08-16): ostruct as a declared dependency
 
@@ -200,6 +200,17 @@ And settings are written through `OpenStruct#[]=` rather than `#send` with a
 name built at run time, which Spinel refuses. Under CRuby the two are the same
 call, `#[]=` defining the accessor just as the writer reached through
 `#method_missing` did.
+
+### 0.14.2 (2026-10-26): aliases written out
+
+`Module#alias_methods` took a list of names and aliased each to the last, which
+Spinel cannot follow, the names reaching `alias_method` only at run time. The
+eleven aliases it made are written out one per line instead, and answer exactly
+as before; they had no tests, and now have one each.
+
+The patch was on Module, so every class in a program which loaded Switches had
+it, but nothing outside this library called it. `Array#all_but_last`, and the
+`Array#last!` it called, were there only to serve it, and went with it.
 
 ## Open questions
 

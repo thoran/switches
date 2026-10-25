@@ -467,6 +467,25 @@ describe Switches do
     end
   end
 
+  describe "aliases" do
+    {
+      optional_switch: :set, optional: :set,
+      optional_switch!: :set!, optional!: :set!,
+      optionally_perform: :perform, optional_perform: :perform,
+      optionally_perform!: :perform!, optional_perform!: :perform!,
+    }.each do |name, original|
+      it "answers ##{name} as ##{original}" do
+        _(Switches.instance_method(name)).must_equal Switches.instance_method(original)
+      end
+    end
+
+    [:to_h, :as_hash, :as_a_hash].each do |name|
+      it "answers .#{name} as .as_h" do
+        _(Switches.method(name).unbind).must_equal Switches.method(:as_h).unbind
+      end
+    end
+  end
+
   describe "OpenStruct, with switches.rb loaded" do
     it "keeps the block form of #to_h" do
       _(OpenStruct.new(a: 1).to_h{|k, v| [k.to_s, v * 10]}).must_equal({'a' => 10})

@@ -2,6 +2,14 @@
 
 ## 20261026
 
+0.14.2: - Module#alias_methods, the aliases it made being written out as alias_method.
+
+1. - lib/switches.rb: Module#alias_methods. Spinel refuses an alias whose names are only known at run time.
+2. ~ Switches.to_h, .as_hash, .as_a_hash, #optional_switch, #optional, #optional_switch!, #optional!, #optionally_perform, #optional_perform, #optionally_perform!, #optional_perform!: an alias_method each, for alias_methods.
+3. - lib/switches.rb: Array#all_but_last and Array#last!, which only Module#alias_methods used.
+4. + test/switches_test.rb: each of those aliases answers as its original.
+5. ~ Switches::VERSION: /0.14.1/0.14.2/
+
 0.14.1: - OpenStruct#to_h, which took the block from every OpenStruct's #to_h in a program and handed out its live table.
 
 1. - lib/switches.rb: OpenStruct#to_h. ostruct's own answers a copy of the table and takes a block.

@@ -41,15 +41,7 @@ class Array
   def poke_options!(h)
     self << self.extract_options!.merge(h)
   end
-  
-  alias_method :last!, :pop
-  
-  def all_but_last
-    d = self.dup
-    d.last!
-    d
-  end
-  
+
 end
 
 class Object
@@ -69,14 +61,6 @@ class NilClass
   end
   alias_method :defaults_to, :default_is
   alias_method :default_to, :default_is
-  
-end
-
-class Module
-  
-  def alias_methods(*args)
-    args.all_but_last.each{|e| alias_method e.to_sym, args.last.to_sym}
-  end
   
 end
 
@@ -146,7 +130,9 @@ class Switches
       switches = new(*args)
       switches.to_h
     end
-    alias_methods :to_h, :as_hash, :as_a_hash, :as_h
+    alias_method :to_h, :as_h
+    alias_method :as_hash, :as_h
+    alias_method :as_a_hash, :as_h
     
   end
 
@@ -171,12 +157,14 @@ class Switches
   def set(*attrs, &block)
     do_set(false, *attrs, &block)
   end
-  alias_methods :optional_switch, :optional, :set
+  alias_method :optional_switch, :set
+  alias_method :optional, :set
   
   def set!(*attrs, &block)
     do_set(true, *attrs, &block)
   end
-  alias_methods :optional_switch!, :optional!, :set!
+  alias_method :optional_switch!, :set!
+  alias_method :optional!, :set!
   
   def required(*attrs, &block)
     attrs.poke_options!({:required => true})
@@ -193,12 +181,14 @@ class Switches
   def perform(*attrs, &block)
     do_action(false, *attrs, &block)
   end
-  alias_methods :optionally_perform, :optional_perform, :perform
+  alias_method :optionally_perform, :perform
+  alias_method :optional_perform, :perform
   
   def perform!(*attrs, &block)
     do_action(true, *attrs, &block)
   end
-  alias_methods :optionally_perform!, :optional_perform!, :perform!
+  alias_method :optionally_perform!, :perform!
+  alias_method :optional_perform!, :perform!
   
   def required_perform(*attrs, &block)
     attrs.poke_options!({:required => true})
