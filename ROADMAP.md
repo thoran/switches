@@ -19,7 +19,7 @@ the names Ruby may call implicitly belong to nobody and are answered by the
 settings. Where a name would be lost, the declaration is refused rather than
 accepted.
 
-## Current state: 0.14.3
+## Current state: 0.14.4
 
 ### 0.10.4 (2026-08-16): ostruct as a declared dependency
 
@@ -186,8 +186,8 @@ program, so a tool built on Switches could ship without Ruby or gems. It
 resolves every call at compile time, and Switches meets it with a handful of
 refusals and a larger problem: Spinel never calls `#method_missing`, which is
 how every setting is read. The refusals are cleared one release at a time,
-those needing no change in behaviour first, as 0.14.1 to 0.14.4; the casting
-methods follow in 0.15.0, and how settings are read after that.
+those needing no change in behaviour first, from 0.14.1; the casting methods
+follow in 0.15.0, and how settings are read after that.
 
 0.14.1 takes two. `OpenStruct#to_h` was reopened to answer `@table` on
 2012-11-09, three months before Ruby 2.0 gave OpenStruct a `#to_h` of its own,
@@ -231,6 +231,17 @@ folds the comparison and drops the branch, and the message there reads
 A branch on the engine is the narrowest change which keeps the message, and the
 only one in the library. Were there to be more, a build step which strips them
 for Spinel would be the place for them rather than the source.
+
+### 0.14.4 (2026-11-03): `Switches.as_h` given its block
+
+`.as_h` called `.new` without the block it was given, so nothing was declared
+or parsed and it answered `{}`. It has done so since it arrived in 0.9.9,
+its tests checking only that its aliases point at it. It passes the block on
+now, and answers the settings as the README shows.
+
+The Hash it answers is read through `Hash#[]`, not `#method_missing`, so once
+the library compiles under Spinel it reads the same there as under CRuby, as
+does `#to_h` on an instance. That is one answer to how settings are read there.
 
 ## Open questions
 

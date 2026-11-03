@@ -1,5 +1,13 @@
 # switches/CHANGELOG
 
+## 20261103
+
+0.14.4: ~ Switches.as_h: passes its block to .new, without which it answered {} whatever was declared.
+
+1. ~ Switches.as_h: + &block, new(*args, &block) for new(*args).
+2. + test/switches_test.rb: .as_h answers the settings its block declares, and nil for those not supplied.
+3. ~ Switches::VERSION: /0.14.3/0.14.4/
+
 ## 20261026
 
 0.14.3: SwitchNameCollision's message names the method's owner except under Spinel, where it cannot be known.
