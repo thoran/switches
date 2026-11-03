@@ -147,15 +147,17 @@ switches = Switches.new do |s|
 end
 
 # Return a hash instead of an object of class Switches
-switches = Switches.new(to_h: true) do |s|
-  s.set(:a)
-end
-# OR
 switches = Switches.as_h do |s|
   s.set(:a)
 end
 switches[:a]
 switches.class # => Hash
+# OR, without a block, where #parse! returns the Hash
+switches = Switches.new(to_h: true)
+switches.set(:a)
+settings = switches.parse!
+settings[:a]
+settings.class # => Hash
 
 # Without a block
 switches = Switches.new
@@ -174,7 +176,7 @@ switches.perform(:a){|block_arg| puts block_arg.upcase}
 switches.parse! # => A
 
 # With multiple features combined
-switches = Switches.new(include_casting_interface_methods: true, to_h: true) do |s|
+switches = Switches.as_h(include_casting_interface_methods: true) do |s|
   s.set(:a, default: 31, cast: Integer){'This is the switch -a.  It has a default of 31.'}
   # OR
   s.set(:a, default: 31, type: Integer){'This is the switch -a.  It has a default of 31.'}
@@ -184,7 +186,7 @@ switches = Switches.new(include_casting_interface_methods: true, to_h: true) do 
   s.integer(:a, default: 31){'This is the switch -a.  It has a default of 31.'}
 end
 switches[:a] # => 31 if no argument supplied
-switches.a.class # => Integer
+switches[:a].class # => Integer
 switches.class # => Hash
 
 ```

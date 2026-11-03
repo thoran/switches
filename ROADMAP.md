@@ -19,7 +19,7 @@ the names Ruby may call implicitly belong to nobody and are answered by the
 settings. Where a name would be lost, the declaration is refused rather than
 accepted.
 
-## Current state: 0.14.3
+## Current state: 0.14.4
 
 ### 0.10.4 (2026-08-16): ostruct as a declared dependency
 
@@ -186,8 +186,8 @@ program, so a tool built on Switches could ship without Ruby or gems. It
 resolves every call at compile time, and Switches meets it with a handful of
 refusals and a larger problem: Spinel never calls `#method_missing`, which is
 how every setting is read. The refusals are cleared one release at a time,
-those needing no change in behaviour first, as 0.14.1 to 0.14.4; the casting
-methods follow in 0.15.0, and how settings are read after that.
+those needing no change in behaviour first, from 0.14.1; the casting methods
+follow in 0.15.0, and how settings are read after that.
 
 0.14.1 takes two. `OpenStruct#to_h` was reopened to answer `@table` on
 2012-11-09, three months before Ruby 2.0 gave OpenStruct a `#to_h` of its own,
@@ -231,6 +231,34 @@ folds the comparison and drops the branch, and the message there reads
 A branch on the engine is the narrowest change which keeps the message, and the
 only one in the library. Were there to be more, a build step which strips them
 for Spinel would be the place for them rather than the source.
+
+### 0.14.4 (2026-11-17): `Switches.as_h` given its block
+
+`.as_h` called `.new` without the block it was given, so nothing was declared
+or parsed and it answered `{}`. It has done so since it arrived in 0.9.9,
+its tests checking only that its aliases point at it. It passes the block on
+now, and answers the settings as the README shows.
+
+The Hash it answers is read through `Hash#[]`, not `#method_missing`, so once
+the library compiles under Spinel it reads the same there as under CRuby, as
+does `#to_h` on an instance. That is one answer to how settings are read there.
+
+`.new(to_h: true)` given a block was documented as answering a Hash as well, and
+never has: `.new` answers what it built, and the Hash `#parse!` answers is
+dropped. Without a block the option works, as the answer of `#parse!`. The
+README now shows `.as_h` for the block form, and `to_h:` without a block. Two
+other ways were weighed.
+
+Overriding `.new` to answer the Hash, given a block and the option, does what
+the README said, and passes the tests under CRuby. But `.new` would then
+sometimes answer something other than a Switches, only to duplicate `.as_h`;
+and Spinel 2026.10.25 does not run it. With a bare `super` both forms end in a
+bus error, and with `super(*args, &block)` the block form fails, the instance's
+variables not yet being set when the block runs.
+
+Removing the option, with its spellings `as_h:`, `as_hash:` and `as_a_hash:`,
+would leave one way to get a Hash, but takes the Hash from `#parse!` away where
+the option is used without a block, the one place it works.
 
 ## Open questions
 

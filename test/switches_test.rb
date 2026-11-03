@@ -472,6 +472,25 @@ describe Switches do
     end
   end
 
+  describe ".as_h" do
+    def build(switches_string = '')
+      ARGV.clear
+      switches_string.split.each{|a| ARGV << a}
+      Switches.as_h do |s|
+        s.set :p, :port
+        s.boolean :v, :verbose
+      end
+    end
+
+    it "answers the settings the block declares as a Hash" do
+      _(build('-p 22 -v')).must_equal({p: '22', port: '22', v?: true, verbose?: true})
+    end
+
+    it "answers nil for a declared switch not supplied" do
+      _(build).must_equal({p: nil, port: nil, v?: nil, verbose?: nil})
+    end
+  end
+
   describe "aliases" do
     {
       optional_switch: :set, optional: :set,

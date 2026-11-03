@@ -126,8 +126,8 @@ class Switches
   
   class << self
     
-    def as_h(*args)
-      switches = new(*args)
+    def as_h(*args, &block)
+      switches = new(*args, &block)
       switches.to_h
     end
     alias_method :to_h, :as_h
